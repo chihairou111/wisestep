@@ -183,6 +183,10 @@ export default function Dashboard() {
   const [isLoadingRecommendation, setIsLoadingRecommendation] = useState(false);
   const [recommendedTaskDone, setRecommendedTaskDone] = useState(false);
 
+  // 每日意图（学规划）
+  const [dailyIntention, setDailyIntention] = useState<string | null>(null);
+  const [intentionAsked, setIntentionAsked] = useState(true); // 默认 true 不显示，加载后判断
+
   const formatDuration = (d?: string) => {
     if (!d) return "";
     const trimmed = d.trim();
@@ -279,6 +283,21 @@ export default function Dashboard() {
     });
     // 心情卡片：默认不打扰，只有 AI 判断需要时才提示
     refreshMoodPrompt();
+    // 每日意图：检查今天是否已经问过
+    const today = new Date().toISOString().slice(0, 10);
+    AsyncStorage.getItem("dailyIntention").then((raw) => {
+      if (raw) {
+        try {
+          const saved = JSON.parse(raw);
+          if (saved.date === today) {
+            setDailyIntention(saved.text);
+            setIntentionAsked(true);
+            return;
+          }
+        } catch {}
+      }
+      setIntentionAsked(false);
+    });
   }, []);
 
   // 每次页面获得焦点时刷新
@@ -484,10 +503,10 @@ export default function Dashboard() {
     }, 3000);
   };
 
-  const loadRecommendedTask = async () => {
+  const loadRecommendedTask = async (intention?: string) => {
     setIsLoadingRecommendation(true);
     try {
-      const task = await getAIRecommendedTask();
+      const task = await getAIRecommendedTask(intention || dailyIntention || undefined);
       setRecommendedTask(task);
     } catch (e) {
       console.log("Failed to load recommended task", e);
@@ -1030,6 +1049,54 @@ export default function Dashboard() {
                 </View>
               </View>
             ) : null}
+
+            {/* 每日意图 */}
+            {!projectCompleted && !intentionAsked && phases.length > 0 && (
+              <View style={styles.intentionCard}>
+                <Text style={styles.intentionLabel}>今天想推进哪块？</Text>
+                <View style={styles.intentionChips}>
+                  {phases
+                    .filter((p) => p.goals.some((g) => !g.completed))
+                    .map((p, i) => (
+                      <Pressable
+                        key={i}
+                        style={({ pressed }) => [
+                          styles.intentionChip,
+                          pressed && { opacity: 0.7 },
+                        ]}
+                        onPress={() => {
+                          const today = new Date().toISOString().slice(0, 10);
+                          setDailyIntention(p.title);
+                          setIntentionAsked(true);
+                          AsyncStorage.setItem(
+                            "dailyIntention",
+                            JSON.stringify({ date: today, text: p.title }),
+                          );
+                          loadRecommendedTask(p.title);
+                        }}
+                      >
+                        <Text style={styles.intentionChipText}>{p.title}</Text>
+                      </Pressable>
+                    ))}
+                  <Pressable
+                    style={({ pressed }) => [
+                      styles.intentionChipSkip,
+                      pressed && { opacity: 0.7 },
+                    ]}
+                    onPress={() => {
+                      const today = new Date().toISOString().slice(0, 10);
+                      setIntentionAsked(true);
+                      AsyncStorage.setItem(
+                        "dailyIntention",
+                        JSON.stringify({ date: today, text: "" }),
+                      );
+                    }}
+                  >
+                    <Text style={styles.intentionChipSkipText}>随便</Text>
+                  </Pressable>
+                </View>
+              </View>
+            )}
 
             {/* AI 推荐任务卡片 */}
 
@@ -2666,6 +2733,51 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     gap: 0,
+  },
+  // Intention
+  intentionCard: {
+    marginBottom: 16,
+    padding: 14,
+    backgroundColor: "#FAFAFA",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#E5E5E5",
+  },
+  intentionLabel: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#525252",
+    marginBottom: 10,
+  },
+  intentionChips: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  intentionChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: "#F0FDF4",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#BBF7D0",
+  },
+  intentionChipText: {
+    fontSize: 13,
+    fontWeight: "500",
+    color: "#15803D",
+  },
+  intentionChipSkip: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: "#F5F5F5",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#E5E5E5",
+  },
+  intentionChipSkipText: {
+    fontSize: 13,
+    color: "#A3A3A3",
   },
   // All Done Card
   allDoneCard: {

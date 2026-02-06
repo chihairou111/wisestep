@@ -18,7 +18,7 @@ export type RecommendedTask = {
   goalIndex?: number;
 };
 
-export async function getAIRecommendedTask(): Promise<RecommendedTask | null> {
+export async function getAIRecommendedTask(userIntention?: string): Promise<RecommendedTask | null> {
   try {
     // 1. Gather Context
     const raw = await AsyncStorage.getItem("savedRoute");
@@ -134,13 +134,14 @@ ${pendingTasks || "无"}
 成就：
 ${achievementInfo}
 用户特点：${userDescriptions || "无"}
+${userIntention ? `用户今天想做的方向：${userIntention}` : ""}
 
 【你需要输出三个字段】
 
 1. headline — 卡片上最大的文字。极简（8 字以内）。
 ${toneGuide}
 
-2. task — 推荐做什么。直接用待办任务名（12 字以内）。
+2. task — 推荐做什么。直接用待办任务名（12 字以内）。${userIntention ? "用户表达了今天的方向，尽量尊重；如果你认为另一个任务更合适，在 reason 里简短说明。" : ""}
 
 3. reason — 为什么现在做这个最值（8-12 字，可省略）。${isFirstTime ? "一句话解释为什么从这个开始，能省则省。" : "一句话融合状态或成就，能省则省。"}
    ${isFirstTime ? "" : `好的例子：

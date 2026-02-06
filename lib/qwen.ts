@@ -1,4 +1,5 @@
 import { chat } from "./api";
+import { perplexitySearch as perplexitySearchProxy } from "./perplexityClient";
 
 export type ResourceCard = {
   id: string;
@@ -80,25 +81,10 @@ type PerplexityResult = {
 };
 
 async function perplexitySearch(query: string): Promise<ResourceCard[]> {
-  const apiKey = process.env.EXPO_PUBLIC_PERPLEXITY_API_KEY || "";
   const refinedQuery = `${query} 教程 OR 指南 OR 方法 OR 步骤 OR 实操 OR 案例 中文 国内 -pdf -ppt -doc -下载 -登录 -注册 -付费`;
   try {
-    const res = await fetch("https://api.perplexity.ai/search", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        query: refinedQuery,
-        max_results: 8,
-      }),
-    });
-    if (!res.ok) return [];
-    const data = await res.json();
-    const results: PerplexityResult[] = Array.isArray(data?.results)
-      ? data.results
-      : [];
+    // 使用代理服务器调用 Perplexity（国内可访问，无需 VPN）
+    const results = await perplexitySearchProxy(refinedQuery, 8);
     const resources: ResourceCard[] = [];
     const chineseFirst: ResourceCard[] = [];
     const other: ResourceCard[] = [];

@@ -362,7 +362,12 @@ function ChatOverlay({
           </ScrollView>
 
           {/* Input Area - 处理安全区域 */}
-          <View style={styles.footer}>
+          <View
+            style={[
+              styles.footer,
+              { paddingBottom: Math.max(insets.bottom, 16) },
+            ]}
+          >
             {selectedImage && (
               <View style={styles.previewRow}>
                 <Image source={{ uri: selectedImage.uri }} style={styles.previewImage} />
