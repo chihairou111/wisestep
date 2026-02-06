@@ -1,15 +1,20 @@
 {
   "expo": {
-    "name": "my-prototype",
-    "slug": "my-prototype",
+    "name": "智步",
+    "slug": "zhibu",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "myprototype",
+    "scheme": "zhibu",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "允许使用相机以发送图片。",
+        "NSPhotoLibraryUsageDescription": "允许访问相册以发送图片。",
+        "NSPhotoLibraryAddUsageDescription": "允许保存图片到相册。"
+      }
     },
     "android": {
       "adaptiveIcon": {
