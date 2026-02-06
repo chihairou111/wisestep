@@ -4,6 +4,9 @@ import OpenAI from "openai";
 export const client = new OpenAI({
   apiKey: process.env.EXPO_PUBLIC_QWEN_API_KEY,
   baseURL: "https://dashscope.aliyuncs.com/compatible-mode/v1",
+  // Allow usage in browser-like environments (Expo Web).
+  // WARNING: This exposes your API key to clients.
+  dangerouslyAllowBrowser: true,
 });
 
 // 通用消息类型

@@ -131,6 +131,15 @@ export default function Step4() {
       >
         学习规划
       </Text>
+      <Text
+        style={{
+          marginTop: 6,
+          fontSize: 13,
+          color: "#6B7280",
+        }}
+      >
+        基于你的项目描述生成，可继续对话调整
+      </Text>
 
       {loading ? (
         <View
@@ -203,10 +212,44 @@ export default function Step4() {
       ) : (
         <>
           <ScrollView
-            style={{ flex: 1, marginTop: 20 }}
-            contentContainerStyle={{ alignItems: "center", paddingBottom: 4 }}
+            style={{ flex: 1, marginTop: 16 }}
+            contentContainerStyle={{ alignItems: "center", paddingBottom: 6 }}
             showsVerticalScrollIndicator={false}
           >
+            <View
+              style={{
+                backgroundColor: "#FFFFFF",
+                borderRadius: 16,
+                padding: 16,
+                marginBottom: 12,
+                borderWidth: 1,
+                borderColor: "#E5E7EB",
+                width: "100%",
+                maxWidth: 520,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontWeight: "700",
+                  color: "#111827",
+                  marginBottom: 6,
+                }}
+              >
+                项目概览
+              </Text>
+              <Text
+                style={{
+                  fontSize: 14,
+                  color: "#4B5563",
+                  lineHeight: 22,
+                }}
+              >
+                {baseQuestion?.trim()
+                  ? baseQuestion.trim()
+                  : "尚未填写项目描述"}
+              </Text>
+            </View>
             {plans.map((plan, index) => (
               <View
                 key={index}

@@ -84,7 +84,9 @@ export default function Step3() {
         <TextInput
           value={question}
           onChangeText={setQuestion}
-          placeholder="例如：我想做一个关于【生物-细胞结构】的项目，目标是通过制作细胞模型来理解各个细胞器的功能，最终能够向同学讲解细胞的工作原理..."
+          placeholder={
+            "简要说明（示例）：\n主题：生物-细胞结构\n目标：做一个细胞模型并能讲解细胞器功能\n计划：本周找资料+画草图，下周制作+演示"
+          }
           placeholderTextColor="#9CA3AF"
           multiline
           textAlignVertical="top"

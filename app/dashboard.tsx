@@ -49,6 +49,7 @@ import {
   Alert,
   Animated,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   StatusBar,
@@ -1895,7 +1896,16 @@ export default function Dashboard() {
                           format: "png",
                           quality: 1,
                         });
-                        await Sharing.shareAsync(uri);
+                        if (Platform.OS === "web") {
+                          const link = document.createElement("a");
+                          link.href = uri;
+                          link.download = `achievement-${selectedAchievement.id}.png`;
+                          document.body.appendChild(link);
+                          link.click();
+                          link.remove();
+                        } else {
+                          await Sharing.shareAsync(uri);
+                        }
                       } catch (e) {
                         console.log("Share failed:", e);
                       }
