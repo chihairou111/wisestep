@@ -38,6 +38,7 @@ import {
   Clock,
   MessageCircle,
   RotateCcw,
+  Share,
   Sparkles,
   Target,
   Triangle,
@@ -46,7 +47,6 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Animated,
   Modal,
   Platform,
@@ -159,6 +159,9 @@ export default function Dashboard() {
 
   // Mock 菜单
   const [mockMenuOpen, setMockMenuOpen] = useState(false);
+
+  // 重置确认
+  const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
 
   // 引导
   const [showGuide, setShowGuide] = useState(false);
@@ -588,35 +591,27 @@ export default function Dashboard() {
   };
 
   const handleReset = () => {
-    Alert.alert(
-      "重置所有数据",
-      "确定要清空所有数据吗？包括成就、活动记录等。",
-      [
-        { text: "取消", style: "cancel" },
-        {
-          text: "确定",
-          style: "destructive",
-          onPress: async () => {
-            // 清除所有 storage
-            await AsyncStorage.multiRemove([
-              "savedRoute",
-              "dailyStats",
-              "indexHistory",
-              "focusHabit",
-              "selectedSubjects",
-              "userQuestion",
-              "achievements",
-              "activityLog",
-              "completedProjects",
-              "guideDone",
-              "lastMoodDate",
-              "moodPromptPending",
-            ]);
-            router.replace("/" as any);
-          },
-        },
-      ],
-    );
+    setResetConfirmOpen(true);
+  };
+
+  const confirmReset = async () => {
+    setResetConfirmOpen(false);
+    // 清除所有 storage
+    await AsyncStorage.multiRemove([
+      "savedRoute",
+      "dailyStats",
+      "indexHistory",
+      "focusHabit",
+      "selectedSubjects",
+      "userQuestion",
+      "achievements",
+      "activityLog",
+      "completedProjects",
+      "guideDone",
+      "lastMoodDate",
+      "moodPromptPending",
+    ]);
+    router.replace("/" as any);
   };
 
   const handleMockHistory = async () => {
@@ -1978,11 +1973,15 @@ export default function Dashboard() {
                       }
                     }}
                   >
-                    <SymbolView
-                      name="square.and.arrow.up"
-                      size={16}
-                      tintColor="#111827"
-                    />
+                    {Platform.OS === "ios" ? (
+                      <SymbolView
+                        name="square.and.arrow.up"
+                        size={16}
+                        tintColor="#111827"
+                      />
+                    ) : (
+                      <Share size={16} color="#111827" />
+                    )}
                     <Text style={styles.achievementShareBtnText}>分享</Text>
                   </Pressable>
                 )}
@@ -2292,6 +2291,45 @@ export default function Dashboard() {
           </View>
         </View>
       </Modal>
+
+      {/* 重置确认对话框 */}
+      <Modal
+        visible={resetConfirmOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setResetConfirmOpen(false)}
+      >
+        <View style={styles.confirmOverlay}>
+          <View style={styles.confirmContent}>
+            <Text style={styles.confirmTitle}>重置所有数据</Text>
+            <Text style={styles.confirmMessage}>
+              确定要清空所有数据吗？包括成就、活动记录等。此操作无法撤销。
+            </Text>
+            <View style={styles.confirmButtons}>
+              <Pressable
+                style={({ pressed }) => [
+                  styles.confirmButton,
+                  styles.confirmButtonCancel,
+                  pressed && { opacity: 0.7 },
+                ]}
+                onPress={() => setResetConfirmOpen(false)}
+              >
+                <Text style={styles.confirmButtonTextCancel}>取消</Text>
+              </Pressable>
+              <Pressable
+                style={({ pressed }) => [
+                  styles.confirmButton,
+                  styles.confirmButtonDestruct,
+                  pressed && { opacity: 0.7 },
+                ]}
+                onPress={confirmReset}
+              >
+                <Text style={styles.confirmButtonTextDestruct}>确定</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -2369,6 +2407,8 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
     minWidth: 140,
+    maxHeight: 300,
+    overflowY: "scroll" as any,
     zIndex: 1001,
   },
   mockMenuItem: {
@@ -3851,5 +3891,62 @@ const styles = StyleSheet.create({
   activityEntryTime: {
     fontSize: 11,
     color: "#A3A3A3",
+  },
+  // 确认对话框
+  confirmOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center" as const,
+    alignItems: "center" as const,
+    padding: 24,
+  },
+  confirmContent: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 24,
+    width: "100%",
+    maxWidth: 340,
+    gap: 16,
+  },
+  confirmTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#171717",
+    textAlign: "center" as const,
+  },
+  confirmMessage: {
+    fontSize: 14,
+    color: "#525252",
+    lineHeight: 20,
+    textAlign: "center" as const,
+  },
+  confirmButtons: {
+    flexDirection: "row" as const,
+    gap: 12,
+    marginTop: 8,
+  },
+  confirmButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    alignItems: "center" as const,
+    justifyContent: "center" as const,
+  },
+  confirmButtonCancel: {
+    backgroundColor: "#F3F4F6",
+  },
+  confirmButtonDestruct: {
+    backgroundColor: "#EF4444",
+  },
+  confirmButtonTextCancel: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#525252",
+  },
+  confirmButtonTextDestruct: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#FFFFFF",
   },
 });
