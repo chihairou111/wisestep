@@ -704,8 +704,9 @@ export default function TaskTimerOverlay({
             transparent
             animationType="fade"
             onRequestClose={() => setExitModalOpen(false)}
+            statusBarTranslucent
           >
-            <View style={styles.modalOverlay}>
+            <View style={[styles.modalOverlay, { zIndex: 9999 }]}>
               <View style={styles.modalContent}>
                 <Text style={styles.modalTitle}>为什么要退出？</Text>
                 <View style={styles.reasonOptions}>
@@ -841,8 +842,9 @@ export default function TaskTimerOverlay({
             transparent
             animationType="fade"
             onRequestClose={() => setCompleteMenuOpen(false)}
+            statusBarTranslucent
           >
-            <View style={styles.modalOverlay}>
+            <View style={[styles.modalOverlay, { zIndex: 9999 }]}>
               <View style={styles.modalContent}>
                 <Text style={styles.modalTitle}>完成方式</Text>
                 <Pressable
@@ -1162,6 +1164,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 12,
     elevation: 6,
+    zIndex: 100,
   },
   fabText: {
     fontSize: 14,
@@ -1175,6 +1178,8 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.35)",
     justifyContent: "center",
     padding: 20,
+    zIndex: 9999,
+    elevation: 9999,
   },
   modalContent: {
     backgroundColor: "#FFFFFF",
@@ -1183,6 +1188,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#E5E7EB",
     gap: 12,
+    zIndex: 10000,
+    elevation: 10000,
   },
   optionBtn: {
     borderWidth: 1,

@@ -48,6 +48,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Animated,
+  Dimensions,
   Modal,
   Platform,
   Pressable,
@@ -159,6 +160,8 @@ export default function Dashboard() {
 
   // Mock 菜单
   const [mockMenuOpen, setMockMenuOpen] = useState(false);
+  const debugButtonRef = useRef<any>(null);
+  const [menuPosition, setMenuPosition] = useState({ top: 60, right: 20 });
 
   // 重置确认
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
@@ -757,73 +760,112 @@ export default function Dashboard() {
         <View style={styles.headerActions}>
           <View style={styles.mockMenuContainer}>
             <Pressable
-              onPress={() => setMockMenuOpen(!mockMenuOpen)}
+              ref={debugButtonRef}
+              onPress={() => {
+                  // Measure button position using measureInWindow
+                  if (debugButtonRef.current) {
+                    debugButtonRef.current.measureInWindow((x, y, width, height) => {
+                      const screenWidth = Dimensions.get("window").width;
+                      setMenuPosition({
+                        top: y + height + 4,
+                        right: screenWidth - x - width,
+                      });
+                      setMockMenuOpen(true);
+                    });
+                  } else {
+                    setMockMenuOpen(true);
+                  }
+              }}
               style={styles.mockBtn}
             >
               <Text style={styles.mockBtnText}>调试</Text>
             </Pressable>
             {mockMenuOpen && (
-              <View style={styles.mockMenu}>
+              <Modal
+                visible={mockMenuOpen}
+                transparent
+                animationType="fade"
+                onRequestClose={() => setMockMenuOpen(false)}
+                statusBarTranslucent
+              >
                 <Pressable
-                  style={styles.mockMenuItem}
-                  onPress={handleMockHistory}
+                  style={styles.mockMenuOverlay}
+                  onPress={() => setMockMenuOpen(false)}
                 >
-                  <Text style={styles.mockMenuItemText}>加数据</Text>
+                  <View
+                    style={[
+                      styles.mockMenuContainer,
+                      {
+                        position: "absolute",
+                        top: menuPosition.top,
+                        right: menuPosition.right,
+                      },
+                    ]}
+                  >
+                    <View style={styles.mockMenu}>
+                      <Pressable
+                        style={styles.mockMenuItem}
+                        onPress={handleMockHistory}
+                      >
+                        <Text style={styles.mockMenuItemText}>加数据</Text>
+                      </Pressable>
+                      <View style={styles.mockMenuDivider} />
+                      <Pressable
+                        style={styles.mockMenuItem}
+                        onPress={handleMockAddDescription}
+                      >
+                        <Text style={styles.mockMenuItemText}>加描述</Text>
+                      </Pressable>
+                      <View style={styles.mockMenuDivider} />
+                      <Pressable
+                        style={styles.mockMenuItem}
+                        onPress={handleCompleteAllTasks}
+                      >
+                        <Text style={styles.mockMenuItemText}>完成所有任务</Text>
+                      </Pressable>
+                      <View style={styles.mockMenuDivider} />
+                      <Pressable
+                        style={styles.mockMenuItem}
+                        onPress={handleMockUnlockAchievement}
+                      >
+                        <Text style={styles.mockMenuItemText}>解锁成就</Text>
+                      </Pressable>
+                      <View style={styles.mockMenuDivider} />
+                      <Pressable
+                        style={styles.mockMenuItem}
+                        onPress={() => {
+                          setMockMenuOpen(false);
+                          AsyncStorage.removeItem("guideDone").then(() => {
+                            setShowGuide(true);
+                          });
+                        }}
+                      >
+                        <Text style={styles.mockMenuItemText}>重置引导</Text>
+                      </Pressable>
+                      <View style={styles.mockMenuDivider} />
+                      <Pressable
+                        style={styles.mockMenuItem}
+                        onPress={async () => {
+                          setMockMenuOpen(false);
+                          const today = new Date().toISOString().slice(0, 10);
+                          await AsyncStorage.removeItem("lastMoodDate");
+                          await AsyncStorage.setItem(
+                            "moodPromptPending",
+                            JSON.stringify({
+                              date: today,
+                              timestamp: new Date().toISOString(),
+                              reason: "debug",
+                            }),
+                          );
+                          setMoodChecked(false);
+                        }}
+                      >
+                        <Text style={styles.mockMenuItemText}>重置心情</Text>
+                      </Pressable>
+                    </View>
+                  </View>
                 </Pressable>
-                <View style={styles.mockMenuDivider} />
-                <Pressable
-                  style={styles.mockMenuItem}
-                  onPress={handleMockAddDescription}
-                >
-                  <Text style={styles.mockMenuItemText}>加描述</Text>
-                </Pressable>
-                <View style={styles.mockMenuDivider} />
-                <Pressable
-                  style={styles.mockMenuItem}
-                  onPress={handleCompleteAllTasks}
-                >
-                  <Text style={styles.mockMenuItemText}>完成所有任务</Text>
-                </Pressable>
-                <View style={styles.mockMenuDivider} />
-                <Pressable
-                  style={styles.mockMenuItem}
-                  onPress={handleMockUnlockAchievement}
-                >
-                  <Text style={styles.mockMenuItemText}>解锁成就</Text>
-                </Pressable>
-                <View style={styles.mockMenuDivider} />
-                <Pressable
-                  style={styles.mockMenuItem}
-                  onPress={() => {
-                    setMockMenuOpen(false);
-                    AsyncStorage.removeItem("guideDone").then(() => {
-                      setShowGuide(true);
-                    });
-                  }}
-                >
-                  <Text style={styles.mockMenuItemText}>重置引导</Text>
-                </Pressable>
-                <View style={styles.mockMenuDivider} />
-                <Pressable
-                  style={styles.mockMenuItem}
-                  onPress={async () => {
-                    setMockMenuOpen(false);
-                    const today = new Date().toISOString().slice(0, 10);
-                    await AsyncStorage.removeItem("lastMoodDate");
-                    await AsyncStorage.setItem(
-                      "moodPromptPending",
-                      JSON.stringify({
-                        date: today,
-                        timestamp: new Date().toISOString(),
-                        reason: "debug",
-                      }),
-                    );
-                    setMoodChecked(false);
-                  }}
-                >
-                  <Text style={styles.mockMenuItemText}>重置心情</Text>
-                </Pressable>
-              </View>
+              </Modal>
             )}
           </View>
           <Pressable onPress={handleReset} style={styles.iconBtn}>
@@ -2398,7 +2440,6 @@ const styles = StyleSheet.create({
   },
   mockMenuContainer: {
     position: "relative",
-    zIndex: 1000,
   },
   mockBtn: {
     paddingHorizontal: 10,
@@ -2412,9 +2453,6 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
   },
   mockMenu: {
-    position: "absolute",
-    top: 36,
-    right: 0,
     backgroundColor: "#FFFFFF",
     borderRadius: 8,
     borderWidth: 1,
@@ -2423,11 +2461,11 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
-    elevation: 4,
+    elevation: 10001,
     minWidth: 140,
     maxHeight: 300,
     overflowY: "scroll" as any,
-    zIndex: 1001,
+    zIndex: 10001,
   },
   mockMenuItem: {
     paddingHorizontal: 14,
@@ -2443,12 +2481,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#E5E7EB",
   },
   mockMenuOverlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 999,
+    flex: 1,
+    backgroundColor: "transparent",
   },
   scrollContent: {
     paddingHorizontal: 20,
