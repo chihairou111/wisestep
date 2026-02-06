@@ -31,6 +31,7 @@ import {
 } from "react-native-safe-area-context";
 import { WebView } from "react-native-webview";
 import { PortalProvider } from "tamagui";
+import * as WebBrowser from "expo-web-browser";
 import ChatOverlay from "./ChatOverlay";
 
 /* ─── types ─── */
@@ -51,6 +52,85 @@ const formatElapsed = (s: number) => {
   const sec = s % 60;
   return `${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
 };
+
+/* ─── WebView for Web Platform ─── */
+
+type WebViewForWebProps = {
+  url: string;
+  style?: any;
+  scrollEnabled?: boolean;
+  onLoadStart?: () => void;
+  onLoadEnd?: () => void;
+};
+
+function WebViewForWeb({
+  url,
+  style,
+  scrollEnabled = false,
+  onLoadStart,
+  onLoadEnd,
+}: WebViewForWebProps) {
+  const viewRef = useRef<any>(null);
+  const onLoadStartRef = useRef(onLoadStart);
+  const onLoadEndRef = useRef(onLoadEnd);
+
+  // Update refs when callbacks change
+  useEffect(() => {
+    onLoadStartRef.current = onLoadStart;
+    onLoadEndRef.current = onLoadEnd;
+  }, [onLoadStart, onLoadEnd]);
+
+  useEffect(() => {
+    if (Platform.OS !== "web") return;
+    if (!viewRef.current || !url) return;
+
+    // @ts-ignore - web only
+    const element = viewRef.current;
+    // @ts-ignore - web only
+    const domNode = element?._node || element?.base || element;
+    if (!domNode) return;
+
+    const iframe = document.createElement("iframe");
+    iframe.src = url;
+    iframe.style.width = "100%";
+    iframe.style.height = "100%";
+    iframe.style.border = "none";
+    iframe.style.display = "block";
+    iframe.style.pointerEvents = scrollEnabled ? "auto" : "none";
+    iframe.setAttribute("sandbox", "allow-same-origin allow-scripts allow-popups allow-forms");
+
+    const handleLoad = () => {
+      onLoadEndRef.current?.();
+    };
+
+    const handleError = () => {
+      // Silently handle errors (CORS/X-Frame-Options)
+      onLoadEndRef.current?.();
+    };
+
+    iframe.addEventListener("load", handleLoad);
+    iframe.addEventListener("error", handleError);
+
+    onLoadStartRef.current?.();
+
+    domNode.innerHTML = "";
+    domNode.appendChild(iframe);
+
+    return () => {
+      iframe.removeEventListener("load", handleLoad);
+      iframe.removeEventListener("error", handleError);
+      if (iframe.parentNode) {
+        iframe.parentNode.removeChild(iframe);
+      }
+    };
+  }, [url, scrollEnabled]);
+
+  if (Platform.OS !== "web") {
+    return null;
+  }
+
+  return <View ref={viewRef} style={[{ flex: 1 }, style]} />;
+}
 
 /* ─── enable LayoutAnimation on Android ─── */
 if (
@@ -494,28 +574,55 @@ export default function TaskTimerOverlay({
                               </View>
                             </View>
                             <View style={styles.cardWebViewBox}>
-                              <WebView
-                                source={{ uri: res.url }}
-                                style={{ flex: 1 }}
-                                scrollEnabled={false}
-                                showsVerticalScrollIndicator={false}
-                                showsHorizontalScrollIndicator={false}
-                                onLoadStart={() =>
-                                  setLoadingCards((s) => new Set(s).add(res.id))
-                                }
-                                onLoadEnd={() =>
-                                  setLoadingCards((s) => {
-                                    const next = new Set(s);
-                                    next.delete(res.id);
-                                    return next;
-                                  })
-                                }
-                              />
-                              {/* tap overlay — prevents WebView from capturing touch */}
-                              <Pressable
-                                style={StyleSheet.absoluteFill}
-                                onPress={() => handleFocusCard(res.id)}
-                              />
+                              {Platform.OS === "web" ? (
+                                <>
+                                  <WebViewForWeb
+                                    url={res.url}
+                                    style={{ flex: 1 }}
+                                    scrollEnabled={false}
+                                    onLoadStart={() =>
+                                      setLoadingCards((s) => new Set(s).add(res.id))
+                                    }
+                                    onLoadEnd={() =>
+                                      setLoadingCards((s) => {
+                                        const next = new Set(s);
+                                        next.delete(res.id);
+                                        return next;
+                                      })
+                                    }
+                                  />
+                                  {/* tap overlay — prevents iframe from capturing touch */}
+                                  <Pressable
+                                    style={StyleSheet.absoluteFill}
+                                    onPress={() => handleFocusCard(res.id)}
+                                  />
+                                </>
+                              ) : (
+                                <>
+                                  <WebView
+                                    source={{ uri: res.url }}
+                                    style={{ flex: 1 }}
+                                    scrollEnabled={false}
+                                    showsVerticalScrollIndicator={false}
+                                    showsHorizontalScrollIndicator={false}
+                                    onLoadStart={() =>
+                                      setLoadingCards((s) => new Set(s).add(res.id))
+                                    }
+                                    onLoadEnd={() =>
+                                      setLoadingCards((s) => {
+                                        const next = new Set(s);
+                                        next.delete(res.id);
+                                        return next;
+                                      })
+                                    }
+                                  />
+                                  {/* tap overlay — prevents WebView from capturing touch */}
+                                  <Pressable
+                                    style={StyleSheet.absoluteFill}
+                                    onPress={() => handleFocusCard(res.id)}
+                                  />
+                                </>
+                              )}
                               {loadingCards.has(res.id) && (
                                 <View style={styles.loadingOverlay}>
                                   <ActivityIndicator
@@ -558,12 +665,20 @@ export default function TaskTimerOverlay({
                     </Pressable>
                   </View>
                   <View style={styles.focusedWebView}>
-                    <WebView
-                      source={{ uri: focusedResource?.url || "" }}
-                      style={{ flex: 1 }}
-                      scrollEnabled={true}
-                      showsVerticalScrollIndicator={true}
-                    />
+                    {Platform.OS === "web" ? (
+                      <WebViewForWeb
+                        url={focusedResource?.url || ""}
+                        style={{ flex: 1 }}
+                        scrollEnabled={true}
+                      />
+                    ) : (
+                      <WebView
+                        source={{ uri: focusedResource?.url || "" }}
+                        style={{ flex: 1 }}
+                        scrollEnabled={true}
+                        showsVerticalScrollIndicator={true}
+                      />
+                    )}
                   </View>
                 </View>
               )}

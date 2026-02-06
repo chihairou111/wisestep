@@ -48,6 +48,22 @@ const INVALID_PAGE_PATTERNS = [
 ];
 
 async function isLikelyAccessible(url: string): Promise<boolean> {
+  // On web platform, skip validation to avoid CORS errors
+  // Users can directly open links, so validation is not critical
+  if (typeof window !== "undefined" && typeof navigator !== "undefined") {
+    // Check if it's a blocked domain or pattern
+    try {
+      const hostname = new URL(url).hostname;
+      if (BLOCKED_DOMAINS.has(hostname)) return false;
+      if (BLOCKED_URL_PATTERNS.some((re) => re.test(url))) return false;
+      // On web, assume URLs are accessible (user can click to verify)
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  // On native platforms (iOS/Android), perform full validation
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 6000);
   try {
