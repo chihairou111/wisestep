@@ -234,14 +234,6 @@ function ChatOverlay({
             </Text>
           </View>
 
-          {/* Tips */}
-          <View style={styles.tipBox}>
-            <Text style={styles.tipTitle}>你可以</Text>
-            <Text style={styles.tipText}>• 问项目/任务相关问题</Text>
-            <Text style={styles.tipText}>• 让 AI 重新搜索学习资源</Text>
-            <Text style={styles.tipText}>• 让 AI 给出下一步建议</Text>
-          </View>
-
           {/* Message List */}
           <ScrollView
             ref={scrollViewRef}
@@ -258,7 +250,16 @@ function ChatOverlay({
           >
             {messages.length === 0 ? (
               <View style={styles.emptyState}>
-                <Text style={styles.emptyStateText}>有问题可以问我</Text>
+                <Text style={styles.emptyStateTitle}>AI 助手</Text>
+                <Text style={styles.emptyStateText}>
+                  我可以帮你：{"\n"}
+                  • 问项目/任务相关问题{"\n"}
+                  • 让 AI 重新搜索学习资源{"\n"}
+                  • 让 AI 给出下一步建议
+                </Text>
+                <Text style={styles.emptyStateHint}>
+                  试试问我：“给我一个可执行的下一步”
+                </Text>
               </View>
             ) : (
               messages.map((msg, index) => (
@@ -311,10 +312,14 @@ function ChatOverlay({
                             next.add(index);
                             return next;
                           });
-                          if (onRequestComplete) {
-                            await onRequestComplete();
-                          }
+                          // 先关闭聊天窗口，再调用完成回调
                           onOpenChange(false);
+                          // 延迟调用以确保UI更新完成
+                          setTimeout(async () => {
+                            if (onRequestComplete) {
+                              await onRequestComplete();
+                            }
+                          }, 100);
                         }}
                       >
                         <Text
@@ -465,26 +470,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#525252",
   },
-  tipBox: {
-    marginHorizontal: 16,
-    marginBottom: 8,
-    padding: 12,
-    backgroundColor: "#FAFAFA",
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-  },
-  tipTitle: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#111827",
-    marginBottom: 6,
-  },
-  tipText: {
-    fontSize: 12,
-    color: "#6B7280",
-    marginBottom: 4,
-  },
   messageList: {
     flex: 1,
   },
@@ -496,10 +481,25 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 48,
+    gap: 8,
+  },
+  emptyStateTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#171717",
   },
   emptyStateText: {
     fontSize: 14,
+    color: "#525252",
+    textAlign: "center",
+    lineHeight: 22,
+  },
+  emptyStateHint: {
+    fontSize: 13,
     color: "#A3A3A3",
+    textAlign: "center",
+    fontStyle: "italic",
+    marginTop: 12,
   },
   messageRow: {
     flexDirection: "row",

@@ -356,11 +356,12 @@ export default function TaskTimerOverlay({
     >
       <PortalProvider>
         <SafeAreaView
-          edges={["top"]}
+          edges={[]}
           style={[
             styles.container,
             {
-              paddingTop: Platform.OS === "web" ? insets.top : 0,
+              paddingTop: insets.top,
+              paddingBottom: chatOpen ? insets.bottom : 0,
             },
           ]}
         >
