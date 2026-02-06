@@ -29,7 +29,8 @@
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/favicon.png",
+      "basePath": "/wisestep"
     },
     "plugins": [
       "expo-router",
