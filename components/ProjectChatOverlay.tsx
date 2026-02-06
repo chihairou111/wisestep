@@ -219,10 +219,16 @@ export default function ProjectChatOverlay({
           >
             {messages.length === 0 ? (
               <View style={styles.emptyState}>
-                <Text style={styles.emptyStateTitle}>项目顾问</Text>
+                <Text style={styles.emptyStateTitle}>项目顾问 AI</Text>
                 <Text style={styles.emptyStateText}>
-                  问我关于项目的任何问题，{"\n"}
-                  或者让我帮你调整计划
+                  我可以帮你：{"\n"}
+                  • 拆解项目成具体任务{"\n"}
+                  • 调整任务的时长和顺序{"\n"}
+                  • 根据你的状态优化计划{"\n"}
+                  • 给出学习资源和方法建议
+                </Text>
+                <Text style={styles.emptyStateHint}>
+                  试试问我："帮我把这个项目拆分成更小的任务"
                 </Text>
               </View>
             ) : (
@@ -447,9 +453,16 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     fontSize: 14,
+    color: "#525252",
+    textAlign: "center",
+    lineHeight: 22,
+  },
+  emptyStateHint: {
+    fontSize: 13,
     color: "#A3A3A3",
     textAlign: "center",
-    lineHeight: 20,
+    fontStyle: "italic",
+    marginTop: 12,
   },
   messageRow: {
     flexDirection: "row",

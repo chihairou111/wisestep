@@ -2572,10 +2572,10 @@ const styles = StyleSheet.create({
     right: 0,
   },
   indexValue: {
-    fontSize: 48,
+    fontSize: 40,
     fontWeight: "800",
     color: "#171717",
-    letterSpacing: -2,
+    letterSpacing: -1.5,
   },
   indexBarContainer: {
     width: "100%",

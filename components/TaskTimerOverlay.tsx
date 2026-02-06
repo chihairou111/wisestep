@@ -356,11 +356,11 @@ export default function TaskTimerOverlay({
     >
       <PortalProvider>
         <SafeAreaView
-          edges={["top"]}
+          edges={["top", "bottom"]}
           style={[
             styles.container,
             {
-              paddingBottom: chatOpen ? insets.bottom : 0,
+              paddingTop: Platform.OS === "web" ? insets.top : 0,
             },
           ]}
         >
@@ -754,6 +754,7 @@ export default function TaskTimerOverlay({
                 <Pressable
                   style={({ pressed }) => [
                     styles.modalCancelBtn,
+                    { flex: undefined },
                     pressed && { backgroundColor: "#F5F5F5" },
                   ]}
                   onPress={() => setCompleteMenuOpen(false)}
