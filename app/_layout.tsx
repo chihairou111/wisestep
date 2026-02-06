@@ -1,3 +1,4 @@
+import "@tamagui/native/setup-zeego";
 import { Stack } from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { PortalProvider, TamaguiProvider } from "tamagui";
