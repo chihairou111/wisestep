@@ -356,7 +356,7 @@ export default function TaskTimerOverlay({
     >
       <PortalProvider>
         <SafeAreaView
-          edges={["top", "bottom"]}
+          edges={["top"]}
           style={[
             styles.container,
             {

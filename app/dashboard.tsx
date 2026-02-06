@@ -1954,18 +1954,35 @@ export default function Dashboard() {
                     ]}
                     onPress={async () => {
                       try {
-                        const uri = await captureRef(shareCardRef, {
-                          format: "png",
-                          quality: 1,
-                        });
                         if (Platform.OS === "web") {
-                          const link = document.createElement("a");
-                          link.href = uri;
-                          link.download = `achievement-${selectedAchievement.id}.png`;
-                          document.body.appendChild(link);
-                          link.click();
-                          link.remove();
+                          // Web平台使用html2canvas
+                          const html2canvas = (await import("html2canvas")).default;
+                          const element = shareCardRef.current as any;
+                          if (!element) {
+                            console.log("Share card ref not found");
+                            return;
+                          }
+                          const canvas = await html2canvas(element, {
+                            backgroundColor: null,
+                            scale: 2,
+                          });
+                          canvas.toBlob((blob) => {
+                            if (!blob) return;
+                            const url = URL.createObjectURL(blob);
+                            const link = document.createElement("a");
+                            link.href = url;
+                            link.download = `achievement-${selectedAchievement.id}.png`;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                            URL.revokeObjectURL(url);
+                          });
                         } else {
+                          // 移动端使用captureRef
+                          const uri = await captureRef(shareCardRef, {
+                            format: "png",
+                            quality: 1,
+                          });
                           await Sharing.shareAsync(uri);
                         }
                       } catch (e) {
@@ -2381,6 +2398,7 @@ const styles = StyleSheet.create({
   },
   mockMenuContainer: {
     position: "relative",
+    zIndex: 1000,
   },
   mockBtn: {
     paddingHorizontal: 10,
