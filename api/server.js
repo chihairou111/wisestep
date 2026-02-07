@@ -1,6 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import https from 'https';
+import fs from 'fs';
 
 dotenv.config();
 
@@ -78,8 +80,13 @@ app.use((req, res) => {
   res.status(404).json({ error: '端点不存在' });
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 API 服务器运行在 http://localhost:${PORT}`);
-  console.log(`✅ Perplexity 代理: POST http://localhost:${PORT}/api/chat`);
-  console.log(`✅ 健康检查: GET http://localhost:${PORT}/health`);
+const sslOptions = {
+  key: fs.readFileSync(new URL('./certs/key.pem', import.meta.url)),
+  cert: fs.readFileSync(new URL('./certs/fullchain.pem', import.meta.url)),
+};
+
+https.createServer(sslOptions, app).listen(PORT, () => {
+  console.log(`🚀 API 服务器运行在 https://localhost:${PORT}`);
+  console.log(`✅ Perplexity 代理: POST https://localhost:${PORT}/api/chat`);
+  console.log(`✅ 健康检查: GET https://localhost:${PORT}/health`);
 });
