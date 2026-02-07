@@ -24,6 +24,7 @@ import { getTodayFocusHabit, type FocusHabit } from "@/lib/focusHabit";
 import { chat, type Message } from "@/lib/api";
 import { getInsightCards, type InsightCard } from "@/lib/insightCards";
 import { generateProjectTitle } from "@/lib/qwen";
+import { PERPLEXITY_PROXY_URL, USE_PERPLEXITY_PROXY } from "@/lib/config";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
 import { useFocusEffect, useRouter } from "expo-router";
@@ -60,6 +61,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { captureRef } from "react-native-view-shot";
+import Svg, { Path } from "react-native-svg";
 
 import {
   getActivityLog,
@@ -76,6 +78,31 @@ type CompletedProject = {
   totalGoals: number;
   phases?: { title: string; goals: { title: string }[] }[];
 };
+
+function TrendTriangle({
+  direction,
+  color,
+}: {
+  direction: "up" | "down" | "same";
+  color: string;
+}) {
+  const size = 12;
+  const height = 10;
+  const pathUp = `M ${size / 2} 0 L ${size} ${height} L 0 ${height} Z`;
+  const pathDown = `M 0 0 L ${size} 0 L ${size / 2} ${height} Z`;
+  return (
+    <Svg width={size} height={height} viewBox={`0 0 ${size} ${height}`}>
+      <Path
+        d={direction === "down" ? pathDown : pathUp}
+        fill={color}
+        stroke={color}
+        strokeWidth={1.2}
+        strokeLinejoin="round"
+        strokeLinecap="round"
+      />
+    </Svg>
+  );
+}
 
 interface Step5Phase {
   title: string;
@@ -162,6 +189,13 @@ export default function Dashboard() {
   const [mockMenuOpen, setMockMenuOpen] = useState(false);
   const debugButtonRef = useRef<any>(null);
   const [menuPosition, setMenuPosition] = useState({ top: 60, right: 20 });
+
+  // Perplexity 连接状态
+  const [perplexityStatus, setPerplexityStatus] = useState<
+    "idle" | "checking" | "ok" | "error"
+  >("idle");
+  const [perplexityStatusNote, setPerplexityStatusNote] = useState("");
+  const [perplexityDialogOpen, setPerplexityDialogOpen] = useState(false);
 
   // 重置确认
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
@@ -722,6 +756,56 @@ export default function Dashboard() {
     };
   }, [phases]);
 
+  const getPerplexityHealthUrl = () => {
+    if (!USE_PERPLEXITY_PROXY) return "";
+    if (PERPLEXITY_PROXY_URL.endsWith("/api/chat")) {
+      return PERPLEXITY_PROXY_URL.replace(/\/api\/chat$/, "/health");
+    }
+    return `${PERPLEXITY_PROXY_URL.replace(/\/$/, "")}/health`;
+  };
+
+  const checkPerplexityHealth = useCallback(async () => {
+    if (!USE_PERPLEXITY_PROXY) {
+      setPerplexityStatus("idle");
+      setPerplexityStatusNote("直连模式");
+      return;
+    }
+
+    const healthUrl = getPerplexityHealthUrl();
+    if (!healthUrl) {
+      setPerplexityStatus("error");
+      setPerplexityStatusNote("地址未配置");
+      return;
+    }
+
+    setPerplexityStatus("checking");
+    setPerplexityStatusNote("");
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 4000);
+
+    try {
+      const res = await fetch(healthUrl, { signal: controller.signal });
+      if (!res.ok) {
+        setPerplexityStatus("error");
+        setPerplexityStatusNote(`HTTP ${res.status}`);
+        return;
+      }
+      setPerplexityStatus("ok");
+      setPerplexityStatusNote("正常");
+    } catch (e: any) {
+      setPerplexityStatus("error");
+      setPerplexityStatusNote(e?.name === "AbortError" ? "超时" : "失败");
+    } finally {
+      clearTimeout(timeout);
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      checkPerplexityHealth();
+    }, [checkPerplexityHealth])
+  );
+
   return (
     <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
       <StatusBar barStyle="dark-content" backgroundColor="#F3F4F6" />
@@ -758,6 +842,62 @@ export default function Dashboard() {
           </Pressable>
         </View>
         <View style={styles.headerActions}>
+          <Pressable
+            onPress={() => {
+              checkPerplexityHealth();
+              setPerplexityDialogOpen(true);
+            }}
+            style={[
+              styles.perplexityBadge,
+              perplexityStatus === "ok" && styles.perplexityBadgeOk,
+              perplexityStatus === "error" && styles.perplexityBadgeError,
+              perplexityStatus === "checking" && styles.perplexityBadgeChecking,
+            ]}
+          >
+            <View
+              style={[
+                styles.perplexityDot,
+                perplexityStatus === "ok" && styles.perplexityDotOk,
+                perplexityStatus === "error" && styles.perplexityDotError,
+                perplexityStatus === "checking" && styles.perplexityDotChecking,
+              ]}
+            />
+            <Text style={styles.perplexityText} numberOfLines={1}>
+              检索{perplexityStatusNote ? ` · ${perplexityStatusNote}` : ""}
+            </Text>
+          </Pressable>
+          <Modal
+            visible={perplexityDialogOpen}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setPerplexityDialogOpen(false)}
+            statusBarTranslucent
+          >
+            <Pressable
+              style={styles.perplexityDialogOverlay}
+              onPress={() => setPerplexityDialogOpen(false)}
+            >
+              <View style={styles.perplexityDialog}>
+                <Text style={styles.perplexityDialogTitle}>检索连接</Text>
+                <Text style={styles.perplexityDialogBody}>
+                  {perplexityStatus === "ok" &&
+                    "当前检索连接正常，可以获取外部资料补充建议。"}
+                  {perplexityStatus === "checking" &&
+                    "正在检测检索连接，请稍等片刻。"}
+                  {perplexityStatus === "error" &&
+                    "检索连接暂时不可用时，系统会跳过外部检索，只使用已有内容生成建议，资源卡片可能为空或不够丰富。"}
+                  {perplexityStatus === "idle" &&
+                    "当前为直连模式或未检测。点一下状态可重新检测。"}
+                </Text>
+                <Pressable
+                  style={styles.perplexityDialogBtn}
+                  onPress={() => setPerplexityDialogOpen(false)}
+                >
+                  <Text style={styles.perplexityDialogBtnText}>知道了</Text>
+                </Pressable>
+              </View>
+            </Pressable>
+          </Modal>
           <View style={styles.mockMenuContainer}>
             <Pressable
               ref={debugButtonRef}
@@ -1007,22 +1147,34 @@ export default function Dashboard() {
           </View>
         ) : (
           <>
-            {/* 2. Stats Strip: 紧凑的数据条 */}
-            <View style={styles.statsStrip}>
-              <View style={styles.statItem}>
-                <Text style={styles.statLabel}>总任务</Text>
-                <Text style={styles.statValue}>{stats.total}</Text>
+            {/* 2. Stats + Project Overview: 合并卡片 */}
+            <View style={styles.statsProjectCard}>
+              <View style={styles.statsStrip}>
+                <View style={styles.statItem}>
+                  <Text style={styles.statLabel}>总任务</Text>
+                  <Text style={styles.statValue}>{stats.total}</Text>
+                </View>
+                <View style={styles.divider} />
+                <View style={styles.statItem}>
+                  <Text style={styles.statLabel}>已完成</Text>
+                  <Text style={styles.statValue}>{stats.done}</Text>
+                </View>
+                <View style={styles.divider} />
+                <View style={styles.statItem}>
+                  <Text style={styles.statLabel}>进度</Text>
+                  <Text style={styles.statValue}>{stats.percent}%</Text>
+                </View>
               </View>
-              <View style={styles.divider} />
-              <View style={styles.statItem}>
-                <Text style={styles.statLabel}>已完成</Text>
-                <Text style={styles.statValue}>{stats.done}</Text>
-              </View>
-              <View style={styles.divider} />
-              <View style={styles.statItem}>
-                <Text style={styles.statLabel}>进度</Text>
-                <Text style={styles.statValue}>{stats.percent}%</Text>
-              </View>
+              {(projectTitle || projectQuestion) ? (
+                <View style={styles.projectOverviewCard}>
+                  <View style={styles.projectOverviewGradient}>
+                    <Text style={styles.projectOverviewLabel}>当前项目</Text>
+                    <Text style={styles.projectOverviewTitle}>
+                      {projectTitle || projectQuestion}
+                    </Text>
+                  </View>
+                </View>
+              ) : null}
             </View>
 
             {/* 每日心情检查 */}
@@ -1074,18 +1226,6 @@ export default function Dashboard() {
                 </Text>
               </View>
             )}
-
-            {/* 当前项目概览 */}
-            {(projectTitle || projectQuestion) ? (
-              <View style={styles.projectOverviewCard}>
-                <View style={styles.projectOverviewGradient}>
-                  <Text style={styles.projectOverviewLabel}>当前项目</Text>
-                  <Text style={styles.projectOverviewTitle}>
-                    {projectTitle || projectQuestion}
-                  </Text>
-                </View>
-              </View>
-            ) : null}
 
             {/* 每日意图 */}
             {!projectCompleted && !intentionAsked && phases.length > 0 && (
@@ -1218,11 +1358,14 @@ export default function Dashboard() {
                   >
                     {/* 顶部标签 */}
                     <View style={styles.recHeader}>
-                      <View style={styles.recBadge}>
-                        <Sparkles size={12} color="#15803D" />
-                        <Text style={styles.recBadgeText}>AI 推荐</Text>
+                      <View style={styles.recTitleRow}>
+                        <View style={styles.recBadge}>
+                          <Sparkles size={12} color="#15803D" />
+                          <Text style={styles.recBadgeText}>AI 推荐</Text>
+                        </View>
+                        <HelpPopover text="AI 会根据你的进度、状态和成就，推荐当前最值得做的任务。点击即可开始。" />
                       </View>
-                      <HelpPopover text="AI 会根据你的进度、状态和成就，推荐当前最值得做的任务。点击即可开始。" />
+                      <ChevronRight size={16} color="#A3A3A3" />
                     </View>
 
                     {/* headline — 最醒目的激励句 */}
@@ -1326,26 +1469,14 @@ export default function Dashboard() {
                         </View>
                       </View>
                       <View style={styles.indexChangeRow}>
-                        <Triangle
-                          size={14}
+                        <TrendTriangle
+                          direction={indexChange.direction}
                           color={
                             indexChange.direction === "up"
                               ? "#22C55E"
                               : indexChange.direction === "down"
                                 ? "#EF4444"
                                 : "#A3A3A3"
-                          }
-                          fill={
-                            indexChange.direction === "up"
-                              ? "#22C55E"
-                              : indexChange.direction === "down"
-                                ? "#EF4444"
-                                : "#A3A3A3"
-                          }
-                          style={
-                            indexChange.direction === "down"
-                              ? { transform: [{ rotate: "180deg" }] }
-                              : undefined
                           }
                         />
                         <Text
@@ -2427,6 +2558,82 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 8,
   },
+  perplexityBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 8,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: "#E5E7EB",
+  },
+  perplexityBadgeOk: {
+    backgroundColor: "#E7F6EE",
+  },
+  perplexityBadgeError: {
+    backgroundColor: "#FCE8E8",
+  },
+  perplexityBadgeChecking: {
+    backgroundColor: "#F2F4F8",
+  },
+  perplexityDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 999,
+    backgroundColor: "#9CA3AF",
+  },
+  perplexityDotOk: {
+    backgroundColor: "#22C55E",
+  },
+  perplexityDotError: {
+    backgroundColor: "#EF4444",
+  },
+  perplexityDotChecking: {
+    backgroundColor: "#F59E0B",
+  },
+  perplexityText: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: "#111827",
+  },
+  perplexityDialogOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(17,24,39,0.25)",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 24,
+  },
+  perplexityDialog: {
+    width: "100%",
+    maxWidth: 360,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 16,
+  },
+  perplexityDialogTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#111827",
+    marginBottom: 8,
+  },
+  perplexityDialogBody: {
+    fontSize: 13,
+    lineHeight: 18,
+    color: "#374151",
+    marginBottom: 12,
+  },
+  perplexityDialogBtn: {
+    alignSelf: "flex-end",
+    backgroundColor: "#111827",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+  },
+  perplexityDialogBtnText: {
+    color: "#FFFFFF",
+    fontSize: 12,
+    fontWeight: "600",
+  },
   title: {
     fontSize: 22,
     fontWeight: "800",
@@ -2488,16 +2695,27 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 80,
   },
+  // Stats + Project Overview
+  statsProjectCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    padding: 12,
+    marginTop: 8,
+    marginBottom: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
+  },
   // Stats Strip
   statsStrip: {
     flexDirection: "row",
-    backgroundColor: "#FFFFFF",
-    borderRadius: 12,
-    paddingVertical: 12,
-    marginTop: 8,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: "#EBEBEB",
+    backgroundColor: "transparent",
+    borderRadius: 10,
+    paddingVertical: 6,
     justifyContent: "space-around",
     alignItems: "center",
   },
@@ -2849,27 +3067,28 @@ const styles = StyleSheet.create({
   intentionChip: {
     paddingHorizontal: 12,
     paddingVertical: 6,
-    backgroundColor: "#F0FDF4",
+    backgroundColor: "#FFFFFF",
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: "#BBF7D0",
+    borderColor: "#E5E5E5",
   },
   intentionChipText: {
     fontSize: 13,
-    fontWeight: "500",
-    color: "#15803D",
+    fontWeight: "600",
+    color: "#111827",
   },
   intentionChipSkip: {
     paddingHorizontal: 12,
     paddingVertical: 6,
-    backgroundColor: "#F5F5F5",
+    backgroundColor: "#FFFFFF",
     borderRadius: 8,
     borderWidth: 1,
     borderColor: "#E5E5E5",
   },
   intentionChipSkipText: {
     fontSize: 13,
-    color: "#A3A3A3",
+    fontWeight: "600",
+    color: "#111827",
   },
   // All Done Card
   allDoneCard: {
@@ -2895,16 +3114,11 @@ const styles = StyleSheet.create({
   },
   // Project Overview Card
   projectOverviewCard: {
-    marginBottom: 20,
-    borderRadius: 12,
+    marginTop: 12,
+    borderRadius: 10,
     overflow: "hidden",
     borderWidth: 1,
     borderColor: "#E5E7EB",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
   },
   projectOverviewGradient: {
     padding: 16,
@@ -2943,6 +3157,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     marginBottom: 10,
+  },
+  recTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
   },
   recBadge: {
     flexDirection: "row",

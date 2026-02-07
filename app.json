@@ -11,6 +11,16 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
+        "NSAppTransportSecurity": {
+          "NSExceptionDomains": {
+            "frp-off.com": {
+              "NSIncludesSubdomains": true,
+              "NSTemporaryExceptionAllowsInsecureHTTPLoads": true,
+              "NSTemporaryExceptionMinimumTLSVersion": "TLSv1.0",
+              "NSExceptionRequiresForwardSecrecy": false
+            }
+          }
+        },
         "NSCameraUsageDescription": "允许使用相机以发送图片。",
         "NSPhotoLibraryUsageDescription": "允许访问相册以发送图片。",
         "NSPhotoLibraryAddUsageDescription": "允许保存图片到相册。"
