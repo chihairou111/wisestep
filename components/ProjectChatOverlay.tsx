@@ -37,7 +37,11 @@ export default function ProjectChatOverlay({
   const [messages, setMessages] = useState<ProjectChatMessage[]>([]);
   const [inputText, setInputText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [suggestions, setSuggestions] = useState<string[]>([
+    "帮我把这个项目拆分成更小的任务",
+    "调整任务的时长和顺序",
+    "给出学习资源和方法建议",
+  ]);
   const scrollViewRef = useRef<ScrollView>(null);
 
   // 打开时自动发送 initialMessage

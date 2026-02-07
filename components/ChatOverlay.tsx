@@ -48,7 +48,11 @@ function ChatOverlay({
   const [projectContext, setProjectContext] = useState<ProjectContext | null>(
     null,
   );
-  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [suggestions, setSuggestions] = useState<string[]>([
+    "给我一个可执行的下一步",
+    "我该怎么改进？",
+    "帮我调整一下时长",
+  ]);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedImage, setSelectedImage] = useState<{
     uri: string;
