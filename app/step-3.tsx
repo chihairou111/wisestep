@@ -49,6 +49,16 @@ export default function Step3() {
     router.push("/step-4" as any);
   };
 
+  const fillExample = () => {
+    setQuestion(`我在学校负责一个线下活动，类型是读书会。主题是"城市观察：如何把日常变成写作素材"，形式是线下小型沙龙（30-40人）。我想做一份"可落地的宣传方案"，能在一周内执行。
+背景：目标受众是同校学生（对写作/观察/记录感兴趣），预算不超过 200 元，主要渠道是班群/社群/公告栏。
+预期成果：
+1. 一份宣传策略（目标人群、核心卖点、传播渠道、时间安排）
+2. 3 条宣传文案（海报/社群/朋友圈）
+3. 一张简单海报或视觉说明（用文字描述版式即可）
+范围：不需要真实发布，只要方案可执行、有时间表和资源清单。`);
+  };
+
   return (
     <SafeAreaView
       style={{
@@ -103,6 +113,24 @@ export default function Step3() {
             color: "#1A1A1A",
           }}
         />
+
+        <Pressable
+          onPress={fillExample}
+          style={{
+            marginTop: 12,
+            paddingVertical: 10,
+            paddingHorizontal: 16,
+            borderRadius: 8,
+            backgroundColor: "#F3F4F6",
+            borderWidth: 1,
+            borderColor: "#E5E7EB",
+            alignItems: "center",
+          }}
+        >
+          <Text style={{ fontSize: 14, fontWeight: "600", color: "#6B7280" }}>
+            💡 快速填充示例（演示用）
+          </Text>
+        </Pressable>
       </View>
 
       <Pressable
