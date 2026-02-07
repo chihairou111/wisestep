@@ -1,5 +1,6 @@
 import { chat } from "./api";
 import { perplexitySearch as perplexitySearchProxy } from "./perplexityClient";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export type ResourceCard = {
   id: string;
@@ -96,17 +97,62 @@ type PerplexityResult = {
   url?: string;
 };
 
-async function perplexitySearch(query: string): Promise<ResourceCard[]> {
-  const refinedQuery = `${query} 教程 OR 指南 OR 方法 OR 步骤 OR 实操 OR 案例 中文 国内 -pdf -ppt -doc -下载 -登录 -注册 -付费`;
+async function perplexitySearch(
+  query: string,
+  projectContext?: { title?: string; descriptions?: string[] }
+): Promise<ResourceCard[]> {
+  // 构建带项目上下文的搜索查询
+  let refinedQuery = query;
+
+  if (projectContext?.title || projectContext?.descriptions?.length) {
+    const contextParts = [];
+    if (projectContext.title) {
+      contextParts.push(`【学习项目】${projectContext.title}`);
+    }
+    if (projectContext.descriptions && projectContext.descriptions.length > 0) {
+      contextParts.push(`【项目描述】${projectContext.descriptions.join('；')}`);
+    }
+    contextParts.push(`【当前任务】${query}`);
+
+    const contextStr = contextParts.join('。');
+    refinedQuery = `${contextStr}。请基于以上项目和任务背景，搜索相关的学习教程、实操指南、方法论、案例分析等教学资源。要求：
+1. 优先选择知乎专栏、Medium、个人博客、技术社区（如掘金、简书、Dev.to）、教学平台等可读性高的网站
+2. 排除营销网站、产品宣传页、广告页
+3. 中文内容优先，但高质量英文资源也可以
+4. 免费开放、无需登录
+5. 排除：app下载、社交媒体产品功能（如抖音粉丝团）、付费课程`;
+  } else {
+    refinedQuery = `如何学习 ${query} 教程 OR 指南 OR 方法 OR 入门 OR 实操 OR 案例 OR 学习资源 优先：知乎 OR 掘金 OR 简书 OR Medium OR 个人博客 -抖音 -粉丝团 -app -下载 -登录 -注册 -付费 -pdf -ppt -doc -广告 -营销`;
+  }
+
   try {
     // 使用代理服务器调用 Perplexity（国内可访问，无需 VPN）
     const results = await perplexitySearchProxy(refinedQuery, 8);
     const resources: ResourceCard[] = [];
+    const highQuality: ResourceCard[] = [];  // 高质量网站
     const chineseFirst: ResourceCard[] = [];
     const other: ResourceCard[] = [];
     const domestic: ResourceCard[] = [];
     const international: ResourceCard[] = [];
     let nextId = 1;
+
+    // 高质量、可读性好的网站域名列表
+    const HIGH_QUALITY_DOMAINS = [
+      'zhihu.com', 'zhuanlan.zhihu.com',  // 知乎
+      'juejin.cn', 'juejin.im',  // 掘金
+      'jianshu.com',  // 简书
+      'segmentfault.com',  // SegmentFault
+      'cnblogs.com',  // 博客园
+      'sspai.com',  // 少数派
+      'infoq.cn',  // InfoQ
+      'oschina.net',  // 开源中国
+      'medium.com',  // Medium
+      'dev.to',  // Dev.to
+      'hackernoon.com',  // HackerNoon
+      'freecodecamp.org',  // freeCodeCamp
+      'smashingmagazine.com',  // Smashing Magazine
+    ];
+
     for (const r of results) {
       const title = typeof r?.title === "string" ? r.title.trim() : "";
       const url = typeof r?.url === "string" ? r.url.trim() : "";
@@ -130,6 +176,10 @@ async function perplexitySearch(query: string): Promise<ResourceCard[]> {
           url: u.toString(),
           domain,
         };
+
+        // 检查是否为高质量网站
+        const isHighQuality = HIGH_QUALITY_DOMAINS.some(d => domain.includes(d));
+
         const isChinese =
           /[\u4E00-\u9FFF]/.test(title) ||
           /\.cn$/.test(domain) ||
@@ -138,7 +188,11 @@ async function perplexitySearch(query: string): Promise<ResourceCard[]> {
           /\.cn$/.test(domain) ||
           /\.edu\.cn$/.test(domain) ||
           /\.gov\.cn$/.test(domain);
-        if (isDomestic) {
+
+        // 优先级：高质量网站 > 国内网站 > 中文网站 > 国际网站
+        if (isHighQuality) {
+          highQuality.push(item);
+        } else if (isDomestic) {
           domestic.push(item);
         } else if (isChinese) {
           chineseFirst.push(item);
@@ -148,9 +202,9 @@ async function perplexitySearch(query: string): Promise<ResourceCard[]> {
       } catch {
         // ignore invalid urls
       }
-      if (domestic.length + chineseFirst.length + international.length >= 8) break;
+      if (highQuality.length + domestic.length + chineseFirst.length + international.length >= 8) break;
     }
-    return [...domestic, ...chineseFirst, ...international].slice(0, 3);
+    return [...highQuality, ...domestic, ...chineseFirst, ...international].slice(0, 3);
   } catch {
     return [];
   }
@@ -163,8 +217,30 @@ export async function searchResources(
 ): Promise<SearchResourcesResponse> {
   const context = taskDetail ? `${taskTitle}：${taskDetail}` : taskTitle;
 
+  // 获取项目上下文
+  let projectContext: { title?: string; descriptions?: string[] } | undefined;
+  try {
+    const raw = await AsyncStorage.getItem("savedRoute");
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      const projectTitle = parsed.projectTitle || "";
+      const descriptions = (parsed.userDescriptions || [])
+        .map((d: any) => (typeof d === "string" ? d : d.text || ""))
+        .filter(Boolean);
+
+      if (projectTitle || descriptions.length > 0) {
+        projectContext = {
+          title: projectTitle,
+          descriptions: descriptions.slice(0, 3), // 最多取3条描述
+        };
+      }
+    }
+  } catch (e) {
+    console.log("Failed to get project context:", e);
+  }
+
   // Prefer real search results to avoid hallucinated URLs.
-  const perplexityResults = await perplexitySearch(context);
+  const perplexityResults = await perplexitySearch(context, projectContext);
   if (perplexityResults.length > 0) {
     return { resources: perplexityResults };
   }

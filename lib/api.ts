@@ -24,14 +24,22 @@ export async function chat(
   messages: Message[],
   model: string = "qwen3-omni-flash",
   enableSearch: boolean = true,
+  timeoutMs: number = 10000, // 默认10秒超时
 ): Promise<{ content: string; error?: string }> {
   try {
-    const completion = await client.chat.completions.create({
+    // 添加超时控制
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error("请求超时")), timeoutMs);
+    });
+
+    const apiPromise = client.chat.completions.create({
       model,
       messages,
       // @ts-ignore - 阿里云特有参数
       enable_search: enableSearch,
     });
+
+    const completion = await Promise.race([apiPromise, timeoutPromise]);
 
     const text = completion.choices[0]?.message?.content;
     if (!text) {
@@ -40,6 +48,9 @@ export async function chat(
     return { content: text };
   } catch (error: any) {
     console.log("API Error:", error);
+    if (error?.message === "请求超时") {
+      return { content: "", error: "请求超时，请检查网络连接" };
+    }
     if (error?.status === 429) {
       return { content: "", error: "请求太频繁，请稍后再试" };
     }

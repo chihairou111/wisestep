@@ -96,13 +96,22 @@ ${contextInfo}
   const { content, error } = await chat(messages);
 
   if (error) {
+    // AI 评估失败，使用简单算法计算
+    const currentIndex = todayStats.index ?? 5;
+    const increment = exitType === "completed" ? 1.2 : (exitMeta?.sentiment === "positive" ? 0 : -0.3);
+    const newIndex = Math.max(0, Math.min(10, currentIndex + increment));
+    const statusText = getStatusLabelFromIndex(newIndex);
+
+    // 即使 AI 失败，也要更新状态
+    if (todayStats.index === null || newIndex !== currentIndex) {
+      await updateTodayIndex(newIndex, statusText);
+    }
+
     return {
-      newIndex: todayStats.index ?? 5,
-      statusText:
-        todayStats.statusText ||
-        getStatusLabelFromIndex(todayStats.index ?? 5),
-      reason: "评估失败",
-      changed: false,
+      newIndex,
+      statusText,
+      reason: exitType === "completed" ? "完成任务" : "中途退出",
+      changed: true,
       error,
     };
   }

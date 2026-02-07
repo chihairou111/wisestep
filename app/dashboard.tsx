@@ -48,7 +48,6 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
-  Animated,
   Dimensions,
   Modal,
   Platform,
@@ -269,7 +268,6 @@ export default function Dashboard() {
 
   // 任务完成 toast
   const [completionToast, setCompletionToast] = useState<string | null>(null);
-  const completionToastOpacity = useRef(new Animated.Value(0)).current;
   const completionToastTimer = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
@@ -528,18 +526,8 @@ export default function Dashboard() {
     if (completionToastTimer.current)
       clearTimeout(completionToastTimer.current);
     setCompletionToast(taskTitle);
-    completionToastOpacity.setValue(0);
-    Animated.timing(completionToastOpacity, {
-      toValue: 1,
-      duration: 250,
-      useNativeDriver: true,
-    }).start();
     completionToastTimer.current = setTimeout(() => {
-      Animated.timing(completionToastOpacity, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: true,
-      }).start(() => setCompletionToast(null));
+      setCompletionToast(null);
     }, 3000);
   };
 
@@ -805,6 +793,7 @@ export default function Dashboard() {
       checkPerplexityHealth();
     }, [checkPerplexityHealth])
   );
+
 
   return (
     <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
@@ -1165,12 +1154,12 @@ export default function Dashboard() {
                   <Text style={styles.statValue}>{stats.percent}%</Text>
                 </View>
               </View>
-              {(projectTitle || projectQuestion) ? (
+              {projectTitle ? (
                 <View style={styles.projectOverviewCard}>
                   <View style={styles.projectOverviewGradient}>
                     <Text style={styles.projectOverviewLabel}>当前项目</Text>
                     <Text style={styles.projectOverviewTitle}>
-                      {projectTitle || projectQuestion}
+                      {projectTitle}
                     </Text>
                   </View>
                 </View>
@@ -1211,8 +1200,8 @@ export default function Dashboard() {
                     onPress={() => handleMoodSelect("good")}
                   >
                     <Text style={styles.moodButtonTextGood}>状态很好</Text>
-                  </Pressable>
-                </View>
+                    </Pressable>
+                  </View>
               </View>
             )}
 
@@ -1296,7 +1285,9 @@ export default function Dashboard() {
             {!projectCompleted &&
               recommendedTask &&
               (recommendedTaskDone ? (
-                <View style={styles.recommendationCard}>
+                <View
+                  style={styles.recommendationCard}
+                >
                   <LinearGradient
                     colors={["#F0FDF4", "#DCFCE7"]}
                     start={{ x: 0, y: 0 }}
@@ -1350,41 +1341,43 @@ export default function Dashboard() {
                     }
                   }}
                 >
-                  <LinearGradient
-                    colors={["#F0FDF4", "#ECFDF5", "#FFFFFF"]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={styles.recommendationGradient}
-                  >
-                    {/* 顶部标签 */}
-                    <View style={styles.recHeader}>
-                      <View style={styles.recTitleRow}>
-                        <View style={styles.recBadge}>
-                          <Sparkles size={12} color="#15803D" />
-                          <Text style={styles.recBadgeText}>AI 推荐</Text>
+                  <View>
+                    <LinearGradient
+                      colors={["#F0FDF4", "#ECFDF5", "#FFFFFF"]}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                      style={styles.recommendationGradient}
+                    >
+                      {/* 顶部标签 */}
+                      <View style={styles.recHeader}>
+                        <View style={styles.recTitleRow}>
+                          <View style={styles.recBadge}>
+                            <Sparkles size={12} color="#15803D" />
+                            <Text style={styles.recBadgeText}>AI 推荐</Text>
+                          </View>
+                          <HelpPopover text="AI 会根据你的进度、状态和成就，推荐当前最值得做的任务。点击即可开始。" />
                         </View>
-                        <HelpPopover text="AI 会根据你的进度、状态和成就，推荐当前最值得做的任务。点击即可开始。" />
+                        <ChevronRight size={16} color="#A3A3A3" />
                       </View>
-                      <ChevronRight size={16} color="#A3A3A3" />
-                    </View>
 
-                    {/* headline — 最醒目的激励句 */}
-                    <Text style={styles.recHeadline} numberOfLines={2}>
-                      {recommendedTask.headline}
-                    </Text>
-
-                    {/* task — 具体行动 */}
-                    <Text style={styles.recTask} numberOfLines={1}>
-                      {recommendedTask.task}
-                    </Text>
-
-                    {/* reason — 自然语言说明收益 */}
-                    {recommendedTask.reason ? (
-                      <Text style={styles.recReason} numberOfLines={2}>
-                        {recommendedTask.reason}
+                      {/* headline — 最醒目的激励句 */}
+                      <Text style={styles.recHeadline} numberOfLines={2}>
+                        {recommendedTask.headline}
                       </Text>
-                    ) : null}
-                  </LinearGradient>
+
+                      {/* task — 具体行动 */}
+                      <Text style={styles.recTask} numberOfLines={1}>
+                        {recommendedTask.task}
+                      </Text>
+
+                      {/* reason — 自然语言说明收益 */}
+                      {recommendedTask.reason ? (
+                        <Text style={styles.recReason} numberOfLines={2}>
+                          {recommendedTask.reason}
+                        </Text>
+                      ) : null}
+                    </LinearGradient>
+                  </View>
                 </Pressable>
               ))}
 
@@ -1432,6 +1425,7 @@ export default function Dashboard() {
                   }
                   disabled={todayIndex === null}
                 >
+                  <View style={{ width: "100%" }}>
                   <View style={styles.indexHeaderRow}>
                     <View
                       style={{ flexDirection: "row", alignItems: "center" }}
@@ -1530,6 +1524,7 @@ export default function Dashboard() {
                       </Text>
                     </View>
                   )}
+                  </View>
                 </Pressable>
 
                 {/* 4. 今日重点习性 */}
@@ -1579,7 +1574,9 @@ export default function Dashboard() {
 
                 {/* 5. 洞察卡片 */}
                 {insightCards.length > 0 && (
-                  <View style={styles.insightSection}>
+                  <View
+                    style={styles.insightSection}
+                  >
                     {insightCards.map((card) => (
                       <View
                         key={card.id}
@@ -1703,7 +1700,9 @@ export default function Dashboard() {
                 {/* 成就进度 */}
                 {achievements.filter((a) => !a.unlocked && a.progress > 0)
                   .length > 0 && (
-                  <View style={styles.achievementProgressSection}>
+                  <View
+                    style={styles.achievementProgressSection}
+                  >
                     <View
                       style={{
                         flexDirection: "row",
@@ -1849,10 +1848,12 @@ export default function Dashboard() {
             ]}
             onPress={openDescriptionModal}
           >
-            <Text style={styles.profileCardTitle}>你的描述</Text>
-            <Text style={styles.profileSummaryText}>
-              已记录 {userDescriptions.length} 条描述，点开查看
-            </Text>
+            <View>
+              <Text style={styles.profileCardTitle}>你的描述</Text>
+              <Text style={styles.profileSummaryText}>
+                已记录 {userDescriptions.length} 条描述，点开查看
+              </Text>
+            </View>
           </Pressable>
         )}
 
@@ -1868,9 +1869,13 @@ export default function Dashboard() {
             setActivityLogOpen(true);
           }}
         >
-          <Clock size={16} color="#737373" />
-          <Text style={styles.activityLogButtonText}>活动记录</Text>
-          <ChevronRight size={16} color="#A3A3A3" />
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flex: 1 }}>
+            <Clock size={16} color="#737373" />
+            <Text style={styles.activityLogButtonText}>活动记录</Text>
+          </View>
+          <View>
+            <ChevronRight size={16} color="#A3A3A3" />
+          </View>
         </Pressable>
       </ScrollView>
 
@@ -2259,14 +2264,14 @@ export default function Dashboard() {
 
       {/* 任务完成 Toast */}
       {completionToast && (
-        <Animated.View
-          style={[styles.completionToast, { opacity: completionToastOpacity }]}
+        <View
+          style={styles.completionToast}
         >
           <CheckCircle2 size={18} color="#16A34A" />
           <Text style={styles.completionToastText} numberOfLines={1}>
             完成了「{completionToast}」
           </Text>
-        </Animated.View>
+        </View>
       )}
 
       {/* 成就解锁 Toast */}
@@ -2817,7 +2822,6 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     borderWidth: 1,
     borderColor: "#E5E7EB",
-    alignItems: "center",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
@@ -2827,10 +2831,9 @@ const styles = StyleSheet.create({
   indexHeaderRow: {
     width: "100%",
     flexDirection: "row",
-    justifyContent: "center",
+    justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 8,
-    position: "relative",
   },
   indexCardTitle: {
     fontSize: 12,
@@ -2838,14 +2841,14 @@ const styles = StyleSheet.create({
     color: "#737373",
   },
   expandIcon: {
-    position: "absolute",
-    right: 0,
+    // 移除绝对定位，使用 flex 布局
   },
   indexValue: {
     fontSize: 40,
     fontWeight: "800",
     color: "#171717",
     letterSpacing: -1.5,
+    alignSelf: "center",
   },
   indexBarContainer: {
     width: "100%",
@@ -2853,20 +2856,21 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   indexBarBg: {
-    height: 8,
+    height: 12,
     backgroundColor: "#E5E7EB",
-    borderRadius: 4,
+    borderRadius: 6,
     overflow: "hidden",
   },
   indexBarFill: {
     height: "100%",
-    borderRadius: 4,
   },
   indexChangeRow: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
     gap: 4,
     marginTop: 4,
+    alignSelf: "center",
   },
   indexChangeText: {
     fontSize: 14,

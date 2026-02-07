@@ -266,7 +266,9 @@ export default function Step5() {
                         <View style={styles.durationBadge}>
                           <Clock size={12} color="#171717" />
                           <Text style={styles.durationText}>
-                            {goal.duration}分钟
+                            {String(goal.duration).includes("分钟")
+                              ? goal.duration
+                              : `${goal.duration}分钟`}
                           </Text>
                         </View>
                       </View>
