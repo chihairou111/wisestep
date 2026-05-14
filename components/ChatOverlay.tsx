@@ -234,7 +234,7 @@ function ChatOverlay({
           {/* Task Info */}
           <View style={styles.taskInfo}>
             <Text style={styles.taskInfoText} numberOfLines={2}>
-              当前任务：{taskContext.title}
+              当前练习：{taskContext.title}
             </Text>
           </View>
 
@@ -257,7 +257,7 @@ function ChatOverlay({
                 <Text style={styles.emptyStateTitle}>AI 助手</Text>
                 <Text style={styles.emptyStateText}>
                   我可以帮你：{"\n"}
-                  • 问项目/任务相关问题{"\n"}
+                  • 问学习主题/练习相关问题{"\n"}
                   • 让 AI 重新搜索学习资源{"\n"}
                   • 让 AI 给出下一步建议
                 </Text>
@@ -400,7 +400,7 @@ function ChatOverlay({
               </Pressable>
               <TextInput
                 style={styles.input}
-                placeholder="输入消息..."
+                placeholder="输入你的问题..."
                 placeholderTextColor="#A3A3A3"
                 value={inputText}
                 onChangeText={setInputText}

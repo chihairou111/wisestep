@@ -33,7 +33,7 @@ export async function getEvaluationDetail(
 - 日期：${stats.date}
 - 状态值（内部参考）：${stats.index !== null ? Number(stats.index).toFixed(1) : "未生成"}
 - 状态词：${stats.statusText ?? "未生成"}
-- 完成任务：${stats.completedTasks}
+- 完成练习：${stats.completedTasks}
 - 中途退出：${stats.earlyExits}
 - 新增负面习性：${stats.newDescriptionsCount}
 - 克服习性：${stats.removedDescriptionsCount}${focusLine}${descLine}

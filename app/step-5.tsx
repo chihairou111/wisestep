@@ -295,7 +295,7 @@ export default function Step5() {
           <View style={styles.bottomBar}>
             <Pressable onPress={handleSaveRoute} style={styles.saveButton}>
               <Text style={styles.saveButtonText}>
-                保存并进入开始你的项目之旅
+                保存并开始学习
               </Text>
             </Pressable>
           </View>

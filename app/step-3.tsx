@@ -50,13 +50,13 @@ export default function Step3() {
   };
 
   const fillExample = () => {
-    setQuestion(`我在学校负责一个线下活动，类型是读书会。主题是"城市观察：如何把日常变成写作素材"，形式是线下小型沙龙（30-40人）。我想做一份"可落地的宣传方案"，能在一周内执行。
-背景：目标受众是同校学生（对写作/观察/记录感兴趣），预算不超过 200 元，主要渠道是班群/社群/公告栏。
-预期成果：
-1. 一份宣传策略（目标人群、核心卖点、传播渠道、时间安排）
-2. 3 条宣传文案（海报/社群/朋友圈）
-3. 一张简单海报或视觉说明（用文字描述版式即可）
-范围：不需要真实发布，只要方案可执行、有时间表和资源清单。`);
+    setQuestion(`我想系统学习 Python 数据分析，之前只会一点点基础语法。希望 4 周内能看懂常见表格数据，完成一次简单的数据清洗、可视化和结论汇报。
+当前水平：会安装软件，知道变量和循环，但没怎么用过 pandas。
+学习目标：
+1. 掌握 pandas 的读取、筛选、分组和清洗
+2. 能用图表展示趋势和对比
+3. 做一个小练习：分析一份公开数据并写出 3 条发现
+学习偏好：每天 30-45 分钟，希望多一点实操，少一点纯理论。`);
   };
 
   return (
@@ -88,14 +88,14 @@ export default function Step3() {
             color: "#1A1A1A",
           }}
         >
-          请键入你对项目的愿景和期望
+          你想学什么？
         </Text>
 
         <TextInput
           value={question}
           onChangeText={setQuestion}
           placeholder={
-            "简要说明（示例）：\n主题：生物-细胞结构\n目标：做一个细胞模型并能讲解细胞器功能\n计划：本周找资料+画草图，下周制作+演示"
+            "说说你想学的内容、当前水平和目标（示例）：\n想学：Python 数据分析\n当前：只会基础语法\n目标：4 周内能清洗表格、画图并写出结论\n偏好：每天 30 分钟，多做练习"
           }
           placeholderTextColor="#9CA3AF"
           multiline
@@ -128,7 +128,7 @@ export default function Step3() {
           }}
         >
           <Text style={{ fontSize: 14, fontWeight: "600", color: "#6B7280" }}>
-            💡 快速填充示例（演示用）
+            快速填充学习示例
           </Text>
         </Pressable>
       </View>
@@ -144,7 +144,7 @@ export default function Step3() {
         }}
       >
         <Text style={{ fontSize: 16, fontWeight: "700", color: "#FFFFFF" }}>
-          Next
+          生成学习规划
         </Text>
       </Pressable>
     </SafeAreaView>

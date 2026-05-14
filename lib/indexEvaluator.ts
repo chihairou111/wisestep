@@ -62,20 +62,20 @@ ${contextInfo}
 
 【评估标准】
 - 基础分：5.0（什么都没做的状态）
-- 完成任务：每完成 1 个任务 +1.0~1.5（大方给分，用户完成了就该被肯定）
+- 完成练习：每完成 1 个练习 +1.0~1.5（大方给分，用户完成了就该被肯定）
 - 中途退出：每次中途退出 -0.3（小惩即可，不要打击积极性）
 - 新增负面习性：每新增 1 条 -0.3
 - 克服习性：每删除 1 条 +1.0（用户在改善，值得鼓励）
 - 今日重点习性已突破：额外 +1.0（针对性改善是最有价值的）
-- 多个任务完成有叠加效应：完成越多，每个任务的加分可以递增（体现势头）
+- 多个练习完成有叠加效应：完成越多，每个练习的加分可以递增（体现势头）
 
 【注意事项】
 1. 状态值范围 0-10，保留一位小数（如 6.5、8.0）
-2. 如果今日已有状态值，根据新的任务完成/退出情况调整，每次完成任务后状态值必须有明显上升
+2. 如果今日已有状态值，根据新的练习完成/退出情况调整，每次完成练习后状态值必须有明显上升
 3. 偏向鼓励：宁可多给 0.5 也不要吝啬。用户付出了时间就应该看到回报
 4. 扣分要谨慎，加分要大方
 5. 如果本次中途退出被判断为 positive（例如有事），不要因为退出扣分
-6. 完成全部任务的日子，状态值应该接近 9.0-10.0
+6. 完成全部练习的日子，状态值应该接近 9.0-10.0
 
 请严格按照以下 JSON 格式返回：
 {
@@ -89,7 +89,7 @@ ${contextInfo}
     { role: "system", content: systemPrompt },
     {
       role: "user",
-      content: `请根据以上数据评估今日状态值。刚刚的任务${exitType === "completed" ? "正常完成" : "中途退出"}了。`,
+      content: `请根据以上数据评估今日状态值。刚刚的练习${exitType === "completed" ? "正常完成" : "中途退出"}了。`,
     },
   ];
 
@@ -110,7 +110,7 @@ ${contextInfo}
     return {
       newIndex,
       statusText,
-      reason: exitType === "completed" ? "完成任务" : "中途退出",
+      reason: exitType === "completed" ? "完成练习" : "中途退出",
       changed: true,
       error,
     };
@@ -167,7 +167,7 @@ function buildContextInfo(
   let info = `【今日数据】
 - 日期：${stats.date}
 - 当前状态值：${stats.index !== null ? Number(stats.index).toFixed(1) : "尚未生成"}
-- 已完成任务数：${stats.completedTasks}${exitType === "completed" ? " (+1 刚刚完成)" : ""}
+- 已完成练习数：${stats.completedTasks}${exitType === "completed" ? " (+1 刚刚完成)" : ""}
 - 中途退出次数：${stats.earlyExits}${exitType === "early_exit" ? " (+1 刚刚退出)" : ""}
 - 今日新增习性描述：${stats.newDescriptionsCount} 条
 - 今日克服习性描述：${stats.removedDescriptionsCount} 条`;
@@ -197,7 +197,7 @@ function buildContextInfo(
 export async function classifyExitReason(
   reason: string,
 ): Promise<ExitReasonMeta> {
-  const systemPrompt = `你是一个学习助手，需要判断用户中途退出任务的原因是正面还是负面。
+  const systemPrompt = `你是一个学习助手，需要判断用户中途退出练习的原因是正面还是负面。
 
 【判断标准】
 - positive：客观原因或合理原因（如有事、临时被打断、身体不适）
@@ -242,15 +242,15 @@ export async function suggestInterruptionPlan(params: {
       ? `\n- 今日重点习性："${focusHabit.text}"（还未突破，可以用来激励用户）`
       : "";
 
-  const systemPrompt = `你是一个学习行动力教练。用户准备中途退出任务（原因偏负面），你需要给出一个"把任务缩短到更容易完成"的建议时长。
+  const systemPrompt = `你是一个学习行动力教练。用户准备中途退出练习（原因偏负面），你需要给出一个"把练习缩短到更容易完成"的建议时长。
 
 【输入】
 - 原因：${params.reason}
-- 原任务时长：${original} 分钟
+- 原练习时长：${original} 分钟
 - 当前剩余：${remaining} 分钟${focusLine}
 
 【目标】
-- 用更小的承诺把用户拉回任务：建议继续 N 分钟即可（N 必须是整数）
+- 用更小的承诺把用户拉回练习：建议继续 N 分钟即可（N 必须是整数）
 - N 不得超过当前剩余分钟数
 - N 建议在 3~10 分钟之间（除非剩余更少）
 - 给一句不说教的短句鼓励（不超过 20 字）

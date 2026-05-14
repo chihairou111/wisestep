@@ -138,7 +138,7 @@ export default function Step4() {
           color: "#6B7280",
         }}
       >
-        基于你的项目描述生成，可继续对话调整
+        基于你想学的内容生成，可继续对话调整
       </Text>
 
       {loading ? (
@@ -236,7 +236,7 @@ export default function Step4() {
                   marginBottom: 6,
                 }}
               >
-                项目概览
+                学习主题
               </Text>
               <Text
                 style={{
@@ -247,7 +247,7 @@ export default function Step4() {
               >
                 {baseQuestion?.trim()
                   ? baseQuestion.trim()
-                  : "尚未填写项目描述"}
+                  : "尚未填写学习目标"}
               </Text>
             </View>
             {plans.map((plan, index) => (
@@ -301,7 +301,7 @@ export default function Step4() {
               <Text
                 style={{ fontSize: 16, fontWeight: "700", color: "#FFFFFF" }}
               >
-                和 AI 继续对话让它改
+                和 AI 继续调整规划
               </Text>
             </Pressable>
             <Pressable
@@ -357,7 +357,7 @@ export default function Step4() {
             <TextInput
               value={suggestion}
               onChangeText={setSuggestion}
-              placeholder="例如：更细化到每天任务，增加练习题建议..."
+              placeholder="例如：更细化到每天练什么，增加练习题建议..."
               placeholderTextColor="#9CA3AF"
               multiline
               textAlignVertical="top"

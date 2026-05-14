@@ -101,21 +101,21 @@ async function perplexitySearch(
   query: string,
   projectContext?: { title?: string; descriptions?: string[] }
 ): Promise<ResourceCard[]> {
-  // 构建带项目上下文的搜索查询
+  // 构建带学习上下文的搜索查询
   let refinedQuery = query;
 
   if (projectContext?.title || projectContext?.descriptions?.length) {
     const contextParts = [];
     if (projectContext.title) {
-      contextParts.push(`【学习项目】${projectContext.title}`);
+      contextParts.push(`【学习主题】${projectContext.title}`);
     }
     if (projectContext.descriptions && projectContext.descriptions.length > 0) {
-      contextParts.push(`【项目描述】${projectContext.descriptions.join('；')}`);
+      contextParts.push(`【学习描述】${projectContext.descriptions.join('；')}`);
     }
-    contextParts.push(`【当前任务】${query}`);
+    contextParts.push(`【当前练习】${query}`);
 
     const contextStr = contextParts.join('。');
-    refinedQuery = `${contextStr}。请基于以上项目和任务背景，搜索相关的学习教程、实操指南、方法论、案例分析等教学资源。要求：
+    refinedQuery = `${contextStr}。请基于以上学习主题和练习背景，搜索相关的学习教程、实操指南、方法论、案例分析等教学资源。要求：
 1. 优先选择知乎专栏、Medium、个人博客、技术社区（如掘金、简书、Dev.to）、教学平台等可读性高的网站
 2. 排除营销网站、产品宣传页、广告页
 3. 中文内容优先，但高质量英文资源也可以
@@ -217,7 +217,7 @@ export async function searchResources(
 ): Promise<SearchResourcesResponse> {
   const context = taskDetail ? `${taskTitle}：${taskDetail}` : taskTitle;
 
-  // 获取项目上下文
+  // 获取学习上下文
   let projectContext: { title?: string; descriptions?: string[] } | undefined;
   try {
     const raw = await AsyncStorage.getItem("savedRoute");
@@ -245,22 +245,22 @@ export async function searchResources(
     return { resources: perplexityResults };
   }
 
-  const prompt = `你是一个学习资源搜索助手。请帮学生找到关于以下任务的学习资源：
+  const prompt = `你是一个学习资源搜索助手。请帮学生找到关于以下练习的学习资源：
 
-任务：${context}
+练习：${context}
 
 【搜索原则】
 - 优先使用权威来源：维基百科（zh.wikipedia.org）、学科专业网站
 - 确认页面具备良好可读性，广告干扰多或内容质量差的页面不要选
 - 找到的URL要尽可能直接指向最相关的内容页面
-- 确保链接有效且内容与任务高度相关
+- 确保链接有效且内容与练习高度相关
 - 避免只按名词定义去找条目，更优先选择“如何做/最佳实践/方法步骤/案例”的资源
-- 如果任务包含动作（如“优化/改进/写作/设计”），优先找教程、指南、方法论文章
+- 如果练习包含动作（如“优化/改进/写作/设计”），优先找教程、指南、方法论文章
 - 只返回可直接打开的完整URL（必须以 http:// 或 https:// 开头），不要用 example.com 这类占位链接
 - 必须确保链接真实存在且可访问，不要编造或猜测链接
 - 避免需要登录/付费/机构权限的页面，优先选择可直接阅读的公开内容
 - 内容要浅显易懂、面向普通读者，避免过于学术或晦涩的材料
-- 优先中文资源（若任务为中文），必要时再选英文
+- 优先中文资源（若练习为中文），必要时再选英文
 - 尽量避免 PDF/课件下载页，优先普通网页文章
 
 请返回最多3个最有帮助的网页资源。严格按照以下JSON格式返回，不要包含任何其他文字：
@@ -373,14 +373,14 @@ export async function generateProjectTitle(
   subjects: string[],
   question: string,
 ): Promise<{ title: string; error?: string }> {
-  const prompt = `你是一个项目命名助手。根据用户的项目描述生成一个清晰简短的中文标题（6-12字）。
+  const prompt = `你是一个学习主题命名助手。根据用户想学习的内容生成一个清晰简短的中文标题（6-12字）。
 
 学科：${subjects.join("、") || "未设定"}
-描述：${question}
+学习描述：${question}
 
 要求：
 1. 标题必须具体、可理解
-2. 不要使用“项目/计划/方案/作业”这类泛词
+2. 不要使用“项目/计划/方案/作业”这类泛词，优先使用具体学习主题
 3. 只输出 JSON
 
 返回格式：
@@ -401,23 +401,23 @@ export async function generateStudyPlan(
   subjects: string[],
   question: string,
 ): Promise<StudyPlanResponse> {
-  const prompt = `你是一位PBL（项目式学习）导师。你的风格是简洁、方向性、不过度指示。学生正在学习以下科目：${subjects.join("、")}。
+  const prompt = `你是一位学习规划导师。你的风格是简洁、方向性、不过度指示。学生正在学习以下内容：${subjects.join("、")}。
 
 学生的描述是：${question}
 
-【判断标准】只要包含“主题 + 对象/场景 + 预期成果”中的任意两项即可生成。
+【判断标准】只要包含“想学的主题 + 当前水平/场景 + 期望目标”中的任意两项即可生成。
 - 哪怕信息不完整，也先给一个可执行的概览
 - 只有在完全无法理解主题时才请用户补充
 
-【核心原则】生成一个简单的项目概览，只列出要涉及的几个大方向/主题，让用户一眼看懂整体范围。
-- 这只是概览，详细任务在下一步生成
+【核心原则】生成一个简单的学习概览，只列出要涉及的几个大方向/主题，让用户一眼看懂整体范围。
+- 这只是概览，详细练习在下一步生成
 - 只列方向，不写具体怎么做
-- 参考方向（不是必须）：知识查找、知识回顾、动手制作、成果产出等
+- 参考方向（不是必须）：基础理解、核心概念、示例练习、实操应用、复盘巩固等
 
-请生成1个项目概览。不要使用 Markdown，用纯文本排版。
+请生成1个学习概览。不要使用 Markdown，用纯文本排版。
 
-项目概览要包含：
-1) 项目标题（简短，4-10个字）
+学习概览要包含：
+1) 学习主题标题（简短，4-10个字）
 2) 涉及方向（列出3-5个大方向，每行一个，只写方向名称，不写描述。例如："细胞结构知识"、"思维导图制作"）
 
 请严格按照以下 JSON 格式返回，不要包含任何其他文字：
@@ -430,7 +430,7 @@ export async function generateStudyPlan(
 如果可以生成方案：
 {
   "plans": [
-    { "title": "项目标题", "content": "项目说明" }
+    { "title": "学习主题标题", "content": "学习说明" }
   ]
 }`;
 
@@ -456,21 +456,21 @@ export async function generateDetailedPlan(
   subjects: string[],
   question: string,
 ): Promise<DetailedPlanResponse> {
-  const prompt = `你是一位PBL（项目式学习）导师。你的风格是具体、可执行、可评估。学生正在学习以下科目：${subjects.join("、")}。
+  const prompt = `你是一位学习规划导师。你的风格是具体、可执行、可评估。学生正在学习以下内容：${subjects.join("、")}。
 
 学生的描述是：${question}
 
-【核心原则】生成方向性的任务列表，每个任务是“主题方向”，不是步骤或做法。（用户已在上一步确认过项目方向，直接生成任务即可，不需要再判断是否清晰）
-- 任务是方向名，不是具体动作
+【核心原则】生成方向性的练习列表，每个练习是“学习方向”，不是步骤或做法。（用户已在上一步确认过学习方向，直接生成练习即可，不需要再判断是否清晰）
+- 练习是方向名，不是具体动作
 - 让用户自己决定内容与方式
-- 任务名称用名词短语（3-6个字），避免动词
+- 练习名称用名词短语（3-6个字），避免动词
 - 说明一句话点明关注点或价值，不给方法/步骤
-- 参考方向（不是必须）：资料、结构、表达、实践、复盘等
+- 参考方向（不是必须）：基础、概念、例题、实践、复盘等
 
-请生成任务列表。要求：
+请生成练习列表。要求：
 1) 分为2-3个阶段
-2) 每个阶段包含2-3个方向性任务
-3) 每个任务有：标题（方向名）、预计时长（纯数字，单位分钟，15-60之间）、简短说明（10-14字，强调方向价值）
+2) 每个阶段包含2-3个方向性练习
+3) 每个练习有：标题（方向名）、预计时长（纯数字，单位分钟，15-60之间）、简短说明（10-14字，强调学习价值）
 4) 不要使用 Markdown
 
 请严格按照以下 JSON 格式返回，不要包含任何其他文字：
@@ -511,19 +511,19 @@ export async function reviseGoalItem(params: {
   suggestion: string;
 }): Promise<GoalEditResponse> {
   const { subjects, question, phaseTitle, goal, suggestion } = params;
-  const prompt = `你是一位PBL（项目式学习）导师。你的风格是具体、可执行、可评估。学生正在学习以下科目：${subjects.join("、")}。
+  const prompt = `你是一位学习规划导师。你的风格是具体、可执行、可评估。学生正在学习以下内容：${subjects.join("、")}。
 
-学生的项目描述是：${question}
+学生的学习描述是：${question}
 
 当前处于阶段：${phaseTitle}
-需要修改的小目标是：
+需要修改的小练习是：
 标题：${goal.title}
 时长：${goal.duration}
 说明：${goal.detail}
 
 学生的修改建议是：${suggestion}
 
-请只修改这个小目标本身，不要改其他阶段或目标。输出一个更新后的目标，包含标题（简短，3-8个字）、时长（15-60分钟）、简短说明（一句话描述要做什么）。
+请只修改这个小练习本身，不要改其他阶段或练习。输出一个更新后的练习，包含标题（简短，3-8个字）、时长（15-60分钟）、简短说明（一句话描述要练什么）。
 
 请严格按照以下 JSON 格式返回，不要包含任何其他文字：
 {

@@ -308,7 +308,7 @@ export default function TaskTimerOverlay({
     if (hasCompletedRef.current) return;
     setCompleteMenuOpen(false);
     setInitialChatInput(
-      "请帮我点评一下这次任务的成果，指出亮点和可以改进的地方。",
+      "请帮我点评一下这次练习的成果，指出亮点和可以改进的地方。",
     );
     setChatOpen(true);
   };
@@ -322,7 +322,7 @@ export default function TaskTimerOverlay({
           {
             role: "user",
             content:
-              "请用2-3句话概述这个任务的核心目标和可执行下一步。语气简洁。",
+              "请用2-3句话概述这个练习的核心目标和可执行下一步。语气简洁。",
           },
         ],
         { title, duration, detail },
@@ -497,18 +497,18 @@ export default function TaskTimerOverlay({
                 >
                   {/* ── Assistant Overview ── */}
                   <View style={styles.assistantCard}>
-                    <Text style={styles.assistantTitle}>任务助手</Text>
+                    <Text style={styles.assistantTitle}>练习助手</Text>
                     <Text style={styles.assistantSub}>
-                      我可以帮你拆解任务、补资源、给出下一步。
+                      我可以帮你拆解练习、补资源、给出下一步。
                     </Text>
                     <View style={styles.assistantTags}>
                       <Pressable
                         style={styles.assistantTagBtn}
                         onPress={() =>
-                          openChat("我对这个任务有点疑问，可以帮我理清要点吗？")
+                          openChat("我对这个练习有点疑问，可以帮我理清要点吗？")
                         }
                       >
-                        <Text style={styles.assistantTagText}>问项目问题</Text>
+                        <Text style={styles.assistantTagText}>问学习问题</Text>
                       </Pressable>
                       <Pressable
                         style={styles.assistantTagBtn}
@@ -547,7 +547,7 @@ export default function TaskTimerOverlay({
                       onPress={handleGenerateSummary}
                     >
                       <Text style={styles.assistantGhostText}>
-                        {isSummarizing ? "生成中..." : "生成任务概述"}
+                        {isSummarizing ? "生成中..." : "生成练习概述"}
                       </Text>
                     </Pressable>
                   </View>
@@ -854,7 +854,7 @@ export default function TaskTimerOverlay({
                   ]}
                   onPress={handleCompleteWithAI}
                 >
-                  <Text style={styles.optionTitle}>找 AI 助手拍一下成果</Text>
+                  <Text style={styles.optionTitle}>找 AI 助手看一下成果</Text>
                   <Text style={styles.optionDesc}>
                     会打开对话框，你可以上传图片再发送
                   </Text>
@@ -867,7 +867,7 @@ export default function TaskTimerOverlay({
                   onPress={handleCompleteDirect}
                 >
                   <Text style={styles.optionTitle}>直接通过</Text>
-                  <Text style={styles.optionDesc}>直接结束任务并记为完成</Text>
+                  <Text style={styles.optionDesc}>直接结束练习并记为完成</Text>
                 </Pressable>
                 <Pressable
                   style={({ pressed }) => [

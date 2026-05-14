@@ -29,31 +29,31 @@ const STEPS: GuideStep[] = [
   {
     title: "你的学习计划",
     description:
-      "这里是你的所有阶段和任务。点击任意阶段查看详情，选一个任务开始计时。",
+      "这里是你的所有学习阶段和练习。点击任意阶段查看详情，选一个练习开始专注。",
     tooltipPosition: "above",
   },
   {
     title: "今日状态",
     description:
-      "每完成一个任务，AI 会给出一个简短的状态词，并更新状态条。它反映你今天的状态，不用分数驱动。",
+      "每完成一个练习，AI 会给出一个简短的状态词，并更新状态条。它反映你今天的学习节奏，不用分数驱动。",
     tooltipPosition: "below",
   },
   {
     title: "AI 推荐",
     description:
-      "AI 会根据你的进度、状态和成就，推荐最值得做的事。完成第一个任务后出现。",
+      "AI 会根据你的进度、状态和成就，推荐最适合开始的学习练习。完成第一个练习后出现。",
     tooltipPosition: "below",
   },
   {
     title: "成就",
     description:
-      "连续学习、完成项目、突破习性……都会解锁成就。点击这里查看。",
+      "连续学习、完成学习计划、突破习性……都会解锁成就。点击这里查看。",
     tooltipPosition: "below",
   },
   {
     title: "AI 顾问",
     description:
-      "随时和 AI 对话。它了解你的全部上下文，可以帮你调整计划、解答问题。",
+      "随时和 AI 对话。它了解你的学习上下文，可以帮你调整计划、解答问题。",
     tooltipPosition: "above",
   },
 ];

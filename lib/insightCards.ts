@@ -16,7 +16,7 @@ export type InsightCard = {
   priority: number; // 0-100，越高越靠前
 };
 
-// ─── 辅助：获取最短的未完成任务 ───
+// ─── 辅助：获取最短的未完成练习 ───
 
 async function getShortestPendingTask(): Promise<{ title: string; duration: string } | null> {
   try {
@@ -51,14 +51,14 @@ async function generateCandidateCards(): Promise<InsightCard[]> {
 
   // ── 激励类 ──
 
-  // 今天完成了至少 1 个任务
+  // 今天完成了至少 1 个练习
   if (stats.completedTasks > 0) {
     cards.push({
       id: "mot_completed",
       type: "motivation",
       title: "做得不错",
-      fact: `今天已完成 ${stats.completedTasks} 个任务。`,
-      action: "要不要顺手补一个最短任务？",
+      fact: `今天已完成 ${stats.completedTasks} 个练习。`,
+      action: "要不要顺手补一个最短练习？",
       priority: 40 + stats.completedTasks * 10,
     });
   }
@@ -74,7 +74,7 @@ async function generateCandidateCards(): Promise<InsightCard[]> {
       type: "motivation",
       title: "状态回升",
       fact: "今天的状态比昨天更顺了。",
-      action: "趁顺手，把一个小任务收掉。",
+      action: "趁顺手，把一个小练习收掉。",
       priority: 70,
     });
   }
@@ -97,7 +97,7 @@ async function generateCandidateCards(): Promise<InsightCard[]> {
       id: "mot_no_exit",
       type: "motivation",
       title: "零退出",
-      fact: `完成 ${stats.completedTasks} 个任务，0 次中途退出。`,
+      fact: `完成 ${stats.completedTasks} 个练习，0 次中途退出。`,
       action: "把这个节奏记下来，明天复用。",
       priority: 55,
     });
@@ -109,7 +109,7 @@ async function generateCandidateCards(): Promise<InsightCard[]> {
       id: "mot_streak",
       type: "motivation",
       title: "高产出",
-      fact: `今天已完成 ${stats.completedTasks} 个任务，超过大多数时候。`,
+      fact: `今天已完成 ${stats.completedTasks} 个练习，超过大多数时候。`,
       action: "缓一缓，下一步更稳。",
       priority: 65,
     });
@@ -135,15 +135,15 @@ async function generateCandidateCards(): Promise<InsightCard[]> {
     yesterdayIndex !== null &&
     stats.index < yesterdayIndex
   ) {
-    // 找到最短的未完成任务作为具体建议
+    // 找到最短的未完成练习作为具体建议
     const shortestPending = await getShortestPendingTask();
     const actionText = shortestPending
       ? `先做「${shortestPending.title}」，${shortestPending.duration} 分钟就够。`
-      : "先完成 1 个小任务。";
+      : "先完成 1 个小练习。";
     const reasonText = stats.earlyExits > 0
       ? `今天的状态有点被打断，可能和 ${stats.earlyExits} 次中途退出有关。`
       : stats.completedTasks === 0
-        ? "今天还没完成任何任务，状态还没被拉起来。"
+        ? "今天还没完成任何练习，状态还没被拉起来。"
         : "今天的状态比昨天弱一些。";
     cards.push({
       id: "warn_index_down",
@@ -167,7 +167,7 @@ async function generateCandidateCards(): Promise<InsightCard[]> {
     });
   }
 
-  // 有习性但今天还没完成任何任务
+  // 有习性但今天还没完成任何练习
   if (descriptions.length > 0 && stats.completedTasks === 0) {
     const topHabit = descriptions[descriptions.length - 1];
     const easiest = await getShortestPendingTask();
@@ -178,7 +178,7 @@ async function generateCandidateCards(): Promise<InsightCard[]> {
       id: "warn_no_start",
       type: "warning",
       title: "还没开始",
-      fact: `今天还没完成任何任务${topHabit ? `，而你有"${topHabit}"的记录` : ""}。`,
+      fact: `今天还没完成任何练习${topHabit ? `，而你有"${topHabit}"的记录` : ""}。`,
       action: actionText,
       priority: 75,
     });
@@ -191,7 +191,7 @@ async function generateCandidateCards(): Promise<InsightCard[]> {
       type: "warning",
       title: "退出比完成多",
       fact: `退出 ${stats.earlyExits} 次 vs 完成 ${stats.completedTasks} 次，完成率偏低。`,
-      action: "换成更短的任务试试。",
+      action: "换成更短的练习试试。",
       priority: 85,
     });
   }
@@ -224,23 +224,23 @@ async function generateCandidateCards(): Promise<InsightCard[]> {
         priority: 90,
       });
     } else if (stats.completedTasks > 0) {
-      // 做了任务但还没突破重点 → 提醒
+      // 做了练习但还没突破重点 → 提醒
       cards.push({
         id: "warn_focus_pending",
         type: "warning",
         title: "重点未突破",
         fact: `今天的重点"${focusHabit.text}"还没被解决。`,
-        action: "下个任务试着刻意针对它练习一次。",
+        action: "下个练习试着刻意针对它练一次。",
         priority: 72,
       });
     } else {
-      // 还没开始任何任务 → 鼓励围绕重点开始
+      // 还没开始任何练习 → 鼓励围绕重点开始
       cards.push({
         id: "warn_focus_not_started",
         type: "warning",
         title: "重点等你行动",
         fact: `今日重点"${focusHabit.text}"还没开始。`,
-        action: "先做 1 个任务，刻意带着这条习性去练。",
+        action: "先做 1 个练习，刻意带着这条习性去练。",
         priority: 68,
       });
     }

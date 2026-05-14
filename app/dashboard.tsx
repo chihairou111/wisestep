@@ -562,7 +562,7 @@ export default function Dashboard() {
       getProjectCompletionReview()
         .then((r) => setCompletionReview(r.review))
         .catch(() =>
-          setCompletionReview("这个项目你坚持到了最后，这本身就很了不起。"),
+          setCompletionReview("这条学习路线你坚持到了最后，这本身就很了不起。"),
         )
         .finally(() => {
           setIsLoadingReview(false);
@@ -584,7 +584,7 @@ export default function Dashboard() {
       if (raw) {
         const parsed = JSON.parse(raw);
         const project: CompletedProject = {
-          question: parsed.question || "未命名项目",
+          question: parsed.question || "未命名学习主题",
           subjects: parsed.subjects || [],
           completedAt: new Date().toISOString().slice(0, 10),
           totalGoals: stats.total,
@@ -950,7 +950,7 @@ export default function Dashboard() {
                         style={styles.mockMenuItem}
                         onPress={handleCompleteAllTasks}
                       >
-                        <Text style={styles.mockMenuItemText}>完成所有任务</Text>
+                        <Text style={styles.mockMenuItemText}>完成所有练习</Text>
                       </Pressable>
                       <View style={styles.mockMenuDivider} />
                       <Pressable
@@ -1140,7 +1140,7 @@ export default function Dashboard() {
             <View style={styles.statsProjectCard}>
               <View style={styles.statsStrip}>
                 <View style={styles.statItem}>
-                  <Text style={styles.statLabel}>总任务</Text>
+                  <Text style={styles.statLabel}>总练习</Text>
                   <Text style={styles.statValue}>{stats.total}</Text>
                 </View>
                 <View style={styles.divider} />
@@ -1157,7 +1157,7 @@ export default function Dashboard() {
               {projectTitle ? (
                 <View style={styles.projectOverviewCard}>
                   <View style={styles.projectOverviewGradient}>
-                    <Text style={styles.projectOverviewLabel}>当前项目</Text>
+                    <Text style={styles.projectOverviewLabel}>当前学习主题</Text>
                     <Text style={styles.projectOverviewTitle}>
                       {projectTitle}
                     </Text>
@@ -1211,7 +1211,7 @@ export default function Dashboard() {
                 <Text style={styles.firstTimeHintText}>
                   点击下方「
                   <Text style={styles.firstTimeHintBold}>学习阶段</Text>
-                  」卡片，开始工作吧
+                  」卡片，开始学习吧
                 </Text>
               </View>
             )}
@@ -1219,7 +1219,7 @@ export default function Dashboard() {
             {/* 每日意图 */}
             {!projectCompleted && !intentionAsked && phases.length > 0 && (
               <View style={styles.intentionCard}>
-                <Text style={styles.intentionLabel}>今天想推进哪块？</Text>
+                <Text style={styles.intentionLabel}>今天想学哪块？</Text>
                 <View style={styles.intentionChips}>
                   {phases
                     .filter((p) => p.goals.some((g) => !g.completed))
@@ -1274,9 +1274,9 @@ export default function Dashboard() {
                 <View style={styles.allDoneCard}>
                   <CheckCircle2 size={18} color="#15803D" />
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.allDoneTitle}>今日任务已全部完成</Text>
+                    <Text style={styles.allDoneTitle}>今日练习已全部完成</Text>
                     <Text style={styles.allDoneSubtitle}>
-                      干得漂亮，可以开始新项目或休息一下。
+                      干得漂亮，可以开始新的学习主题或休息一下。
                     </Text>
                   </View>
                 </View>
@@ -1297,7 +1297,7 @@ export default function Dashboard() {
                     <View style={styles.recDoneRow}>
                       <CheckCircle2 size={20} color="#15803D" />
                       <View style={{ flex: 1 }}>
-                        <Text style={styles.recDoneTitle}>完成了推荐任务</Text>
+                        <Text style={styles.recDoneTitle}>完成了推荐练习</Text>
                         <Text style={styles.recDoneSubtitle}>
                           正在为你生成下一个推荐...
                         </Text>
@@ -1353,9 +1353,9 @@ export default function Dashboard() {
                         <View style={styles.recTitleRow}>
                           <View style={styles.recBadge}>
                             <Sparkles size={12} color="#15803D" />
-                            <Text style={styles.recBadgeText}>AI 推荐</Text>
+                            <Text style={styles.recBadgeText}>AI 推荐练习</Text>
                           </View>
-                          <HelpPopover text="AI 会根据你的进度、状态和成就，推荐当前最值得做的任务。点击即可开始。" />
+                          <HelpPopover text="AI 会根据你的进度、状态和成就，推荐当前最适合开始的学习练习。点击即可开始。" />
                         </View>
                         <ChevronRight size={16} color="#A3A3A3" />
                       </View>
@@ -1381,14 +1381,14 @@ export default function Dashboard() {
                 </Pressable>
               ))}
 
-            {/* 项目完成祝贺卡片 */}
+            {/* 学习计划完成祝贺卡片 */}
             {projectCompleted ? (
               <View style={styles.completionCard}>
                 <View style={styles.completionHeader}>
                   <Text style={styles.completionEmoji}>🎉</Text>
-                  <Text style={styles.completionTitle}>项目已完成</Text>
+                  <Text style={styles.completionTitle}>学习计划已完成</Text>
                   <Text style={styles.completionSubtitle}>
-                    所有 {stats.total} 个任务已完成
+                    所有 {stats.total} 个练习已完成
                   </Text>
                 </View>
 
@@ -1409,7 +1409,7 @@ export default function Dashboard() {
                   ]}
                   onPress={handleStartNewProject}
                 >
-                  <Text style={styles.newProjectButtonText}>开始新项目</Text>
+                  <Text style={styles.newProjectButtonText}>开始新学习主题</Text>
                 </Pressable>
               </View>
             ) : (
@@ -1520,7 +1520,7 @@ export default function Dashboard() {
                   ) : (
                     <View style={styles.indexEmpty}>
                       <Text style={styles.indexEmptyText}>
-                        完成第一个任务后生成状态
+                        完成第一个练习后生成状态
                       </Text>
                     </View>
                   )}
@@ -1554,7 +1554,7 @@ export default function Dashboard() {
                           ? "今日重点 · 已突破"
                           : "今日重点"}
                       </Text>
-                      <HelpPopover text="AI 识别出的你最需要改进的习性。在做任务时刻意练习，完成后可标记为已突破。" />
+                      <HelpPopover text="AI 识别出的你最需要改进的学习习性。在做练习时刻意留意，完成后可标记为已突破。" />
                     </View>
                     <Text
                       style={[
@@ -1566,7 +1566,7 @@ export default function Dashboard() {
                     </Text>
                     {!focusHabit.addressed && (
                       <Text style={styles.focusHint}>
-                        试着在下一个任务中刻意针对这条习性练习
+                        试着在下一个练习中刻意针对这条习性练习
                       </Text>
                     )}
                   </View>
@@ -1634,7 +1634,7 @@ export default function Dashboard() {
                     >
                       学习阶段
                     </Text>
-                    <HelpPopover text="你的学习计划被拆分成多个阶段，每个阶段包含若干任务。点击任一阶段即可查看并开始其中的任务。" />
+                    <HelpPopover text="你的学习计划被拆分成多个阶段，每个阶段包含若干练习。点击任一阶段即可查看并开始练习。" />
                   </View>
                   <View style={styles.listContainer}>
                     {phases.map((item, index) => {
@@ -1767,10 +1767,10 @@ export default function Dashboard() {
                 )}
               </>
             )}
-            {/* 7. 已完成的项目 */}
+            {/* 7. 已完成的学习计划 */}
             {completedProjects.length > 0 && (
               <View style={styles.pastProjectsSection}>
-                <Text style={styles.pastProjectsTitle}>已完成的项目</Text>
+                <Text style={styles.pastProjectsTitle}>已完成的学习计划</Text>
                 {completedProjects.map((p, i) => {
                   const isExpanded = expandedProjectIndex === i;
                   return (
@@ -1794,7 +1794,7 @@ export default function Dashboard() {
                               {p.completedAt}
                             </Text>
                             <Text style={styles.pastProjectGoals}>
-                              {p.totalGoals} 个任务
+                              {p.totalGoals} 个练习
                             </Text>
                           </View>
                         </View>
@@ -1825,7 +1825,7 @@ export default function Dashboard() {
                           ) : (
                             <View style={styles.pastPhaseItem}>
                               <Text style={styles.pastGoalText}>
-                                共 {p.totalGoals} 个任务 · {p.subjects?.join("、") || "无科目信息"}
+                                共 {p.totalGoals} 个练习 · {p.subjects?.join("、") || "无科目信息"}
                               </Text>
                             </View>
                           )}
@@ -1894,7 +1894,7 @@ export default function Dashboard() {
                     ? phases[activePhaseIndex]?.title
                     : ""}
                 </Text>
-                <HelpPopover text="这里是当前阶段的任务列表。点击“Start”开始计时并进入任务页；完成后会自动记录进度。已完成任务可展开查看详情。" />
+                <HelpPopover text="这里是当前阶段的练习列表。点击“开始”进入专注练习；完成后会自动记录进度。已完成练习可展开查看详情。" />
               </View>
               <Pressable
                 onPress={() => setActivePhaseIndex(null)}
@@ -1975,7 +1975,7 @@ export default function Dashboard() {
                                 });
                               }}
                             >
-                              <Text style={styles.startButtonText}>Start</Text>
+                              <Text style={styles.startButtonText}>开始</Text>
                             </Pressable>
                           </View>
                           {goal.duration ? (
@@ -2262,7 +2262,7 @@ export default function Dashboard() {
         />
       )}
 
-      {/* 任务完成 Toast */}
+      {/* 练习完成 Toast */}
       {completionToast && (
         <View
           style={styles.completionToast}
@@ -2350,7 +2350,7 @@ export default function Dashboard() {
             });
           }
 
-          // 完成任务 toast
+          // 完成练习 toast
           if (completed && activeTimerGoal) {
             showCompletionToast(activeTimerGoal.title);
           }
@@ -2423,7 +2423,7 @@ export default function Dashboard() {
                   <Clock size={32} color="#D4D4D4" />
                   <Text style={styles.activityEmptyText}>还没有活动记录</Text>
                   <Text style={styles.activityEmptyHint}>
-                    完成任务后会自动记录在这里
+                    完成练习后会自动记录在这里
                   </Text>
                 </View>
               ) : (

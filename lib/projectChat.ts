@@ -40,7 +40,7 @@ export type ProjectChatMessage = {
 
 async function buildProjectContext(): Promise<string> {
   const raw = await AsyncStorage.getItem("savedRoute");
-  if (!raw) return "【项目数据】暂无项目数据";
+  if (!raw) return "【学习数据】暂无学习数据";
   const parsed = JSON.parse(raw);
 
   const subjects = parsed.subjects?.join("、") || "未设定";
@@ -112,17 +112,17 @@ async function buildProjectContext(): Promise<string> {
     })
     .join("\n");
 
-  return `【项目信息】
+  return `【学习计划信息】
     - 学科：${subjects}
-    - 项目描述：${question}
+    - 学习描述：${question}
 
-【阶段与任务】
+【阶段与练习】
 ${phasesInfo}
 
 【用户表现】
 - 今日状态词：${stats.statusText ?? "未生成"}
 - 状态值（内部参考）：${stats.index !== null ? Number(stats.index).toFixed(1) : "未生成"}
-- 完成任务：${stats.completedTasks}
+- 完成练习：${stats.completedTasks}
 - 中途退出：${stats.earlyExits}${historyLine}${focusLine}${descLine}
 
 【成就状态】
@@ -132,32 +132,32 @@ ${achievementInfo || "暂无成就数据"}`;
 // ─── 系统提示词 ───
 
 function buildSystemPrompt(context: string): string {
-  return `你是用户的学习项目顾问，可以和用户讨论项目进展、给出反馈、提建议。
+  return `你是用户的学习顾问，可以和用户讨论学习进展、给出反馈、提建议。
 
 ${context}
 
 【你的职责】
 1. 对用户的学习表现给予真诚反馈（基于状态、完成率、退出情况、习性等），不要提数字或分数
-2. 回答关于项目的问题
-3. 用户明确要求时，帮助修改项目内容
+2. 回答关于学习主题和练习的问题
+3. 用户明确要求时，帮助修改学习计划内容
 4. 建议修改时，主动考虑用户的习性，让修改更贴合用户的学习模式
-5. **绝对具体**：在生成规划或建议时，不要模棱两可。必须给出明确的步骤、时间或内容。不要说"你可以多学一点"，而要说"建议增加一个 20 分钟的复习任务"。
+5. **绝对具体**：在生成规划或建议时，不要模棱两可。必须给出明确的步骤、时间或内容。不要说"你可以多学一点"，而要说"建议增加一个 20 分钟的复习练习"。
 
 【关于改动的触发条件——极其重要】
 - 默认不发送任何 changes，绝大多数回复只需要 message 和 suggestions
 - 只有在以下情况才可以附带 changes：
-  1. 用户明确要求修改（如"帮我改一下"、"调整时长"、"加个任务"等）
+  1. 用户明确要求修改（如"帮我改一下"、"调整时长"、"加个练习"等）
   2. 用户描述了明确的困难，且你判断必须调整计划才能解决，此时先用 message 提出建议，等用户同意后再在下一轮附带 changes
 - 绝对不要在用户只是随便聊天、问问题时就附带改动
 
 【更改规则】
 1. 更改必须温和：不要一次性大改，每次最多改动 1-2 个地方
-2. 绝对不能删除已完成的任务
-3. 已完成任务的内容也不要修改
-4. 更改只针对未完成的任务（新增、微调标题/详情/时长）
-5. 新增任务必须指定 phaseIndex（0 开始）和合理的 duration
-6. 修改任务必须指定 phaseIndex 和 goalIndex（0 开始）
-7. 建议修改时，必须考虑用户的习性。如果某个修改与用户的习性相关（如"容易拖延"→建议缩短时长、"容易分心"→建议拆分任务），必须在 reason 中明确说明："考虑到你的习性'XXX'，建议..."
+2. 绝对不能删除已完成的练习
+3. 已完成练习的内容也不要修改
+4. 更改只针对未完成的练习（新增、微调标题/详情/时长）
+5. 新增练习必须指定 phaseIndex（0 开始）和合理的 duration
+6. 修改练习必须指定 phaseIndex 和 goalIndex（0 开始）
+7. 建议修改时，必须考虑用户的习性。如果某个修改与用户的习性相关（如"容易拖延"→建议缩短时长、"容易分心"→建议拆分练习），必须在 reason 中明确说明："考虑到你的习性'XXX'，建议..."
 
 【回复格式】
 请严格返回 JSON：
@@ -177,7 +177,7 @@ ${context}
   ]
 }
 
-suggestions 必须包含 2-3 个用户可能想继续问的简短问题（如"我该怎么改进？"、"帮我调整一下时长"等），根据当前对话和项目状态生成。
+suggestions 必须包含 2-3 个用户可能想继续问的简短问题（如"我该怎么改进？"、"帮我调整一下时长"等），根据当前对话和学习状态生成。
 如果不需要改动，changes 可以省略或设为空数组：
 { "message": "你的回复", "suggestions": ["问题1", "问题2"] }`;
 }
@@ -251,7 +251,7 @@ export async function applyProjectChanges(
     if (change.type === "modify_goal") {
       const goal = phase.goals?.[change.goalIndex ?? -1];
       if (!goal) continue;
-      // 不修改已完成的任务
+      // 不修改已完成的练习
       if (goal.completed) continue;
 
       if (change.title) goal.title = change.title;
@@ -261,7 +261,7 @@ export async function applyProjectChanges(
     } else if (change.type === "add_goal") {
       if (!Array.isArray(phase.goals)) phase.goals = [];
       phase.goals.push({
-        title: change.title || "新任务",
+        title: change.title || "新练习",
         duration: change.duration || "25 分钟",
         detail: change.detail || "",
         completed: false,

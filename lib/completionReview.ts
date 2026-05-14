@@ -4,7 +4,7 @@ import { getIndexHistory, getStatusLabelFromIndex, getTodayStats } from "./daily
 import { getTodayFocusHabit } from "./focusHabit";
 
 export type CompletionReview = {
-  review: string; // 对整个项目的总结评价
+  review: string; // 对整个学习计划的总结评价
 };
 
 export async function getProjectCompletionReview(): Promise<CompletionReview> {
@@ -52,12 +52,12 @@ export async function getProjectCompletionReview(): Promise<CompletionReview> {
       ? `\n- 阶段进度：${project.phaseSummary.join("；")}`
       : "";
 
-  const systemPrompt = `你是一个学习教练。用户刚刚完成了整个项目的所有任务！请给出一段完整的总结评价。
+  const systemPrompt = `你是一个学习教练。用户刚刚完成了整个学习计划的所有练习！请给出一段完整的总结评价。
 
 【今日数据】
 - 状态词：${stats.statusText ?? "未生成"}
 - 状态值（内部参考）：${stats.index !== null ? Number(stats.index).toFixed(1) : "未生成"}
-- 完成任务：${stats.completedTasks}
+- 完成练习：${stats.completedTasks}
 - 中途退出：${stats.earlyExits}
 - 新增负面习性：${stats.newDescriptionsCount}
 - 克服习性：${stats.removedDescriptionsCount}${historyLine}${focusLine}${descLine}${phaseLine}
@@ -66,7 +66,7 @@ export async function getProjectCompletionReview(): Promise<CompletionReview> {
 1. 写 3-5 句话的评价，包括：用户做得好的地方、过程中的挑战、成长点、以及接下来可以关注的方向
 2. 语气温暖真诚，像一个好朋友在总结
 3. 如果有习性数据，结合它评价用户的成长
-4. 不要提及分数或数字评价，不要说"你完成了所有任务"这种废话，直接说实质
+4. 不要提及分数或数字评价，不要说"你完成了所有练习"这种废话，直接说实质
 
 请严格返回 JSON：
 {
@@ -80,7 +80,7 @@ export async function getProjectCompletionReview(): Promise<CompletionReview> {
 
   const { content, error } = await chat(messages);
   if (error) {
-    return { review: "这个项目你坚持到了最后，这本身就很了不起。继续保持这种节奏，下一个项目会更顺利。" };
+    return { review: "这条学习路线你坚持到了最后，这本身就很了不起。继续保持这种节奏，下一个主题会更顺利。" };
   }
 
   try {
@@ -89,7 +89,7 @@ export async function getProjectCompletionReview(): Promise<CompletionReview> {
       review:
         typeof parsed.review === "string"
           ? parsed.review
-          : "这个项目你坚持到了最后，这本身就很了不起。",
+          : "这条学习路线你坚持到了最后，这本身就很了不起。",
     };
   } catch {
     return { review: content.slice(0, 300) };

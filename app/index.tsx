@@ -69,7 +69,7 @@ export default function Index() {
               },
               { action: () => setTypeColor("#171717") },
               {
-                text: "拆解任务为可执行步骤",
+                text: "拆解练习为可执行步骤",
                 typeSpeed: 80,
                 delayBetweenSequence: 800,
               },
@@ -97,7 +97,7 @@ export default function Index() {
             <View style={styles.featureIcon}>
               <Target size={18} color="#171717" />
             </View>
-            <Text style={styles.featureText}>AI 拆解目标，生成个性化学习计划</Text>
+            <Text style={styles.featureText}>输入想学的内容，AI 生成个性化学习路线</Text>
           </View>
           <View style={styles.featureRow}>
             <View style={styles.featureIcon}>
@@ -109,7 +109,7 @@ export default function Index() {
             <View style={styles.featureIcon}>
               <Sparkles size={18} color="#171717" />
             </View>
-            <Text style={styles.featureText}>智能推荐任务，成就系统持续激励</Text>
+            <Text style={styles.featureText}>智能推荐练习，成就系统持续激励</Text>
           </View>
         </View>
       </Animated.View>
@@ -123,7 +123,7 @@ export default function Index() {
             pressed && styles.buttonPressed,
           ]}
         >
-          <Text style={styles.buttonText}>开始使用</Text>
+          <Text style={styles.buttonText}>开始规划学习</Text>
         </Pressable>
       </Animated.View>
     </SafeAreaView>

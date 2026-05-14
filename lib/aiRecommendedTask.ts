@@ -97,14 +97,14 @@ export async function getAIRecommendedTask(userIntention?: string): Promise<Reco
       stats.statusText ||
       (stats.index !== null ? statusLabelFor(stats.index) : "待开始");
 
-    // 判断是否是新用户（没有历史记录，没完成过任何任务）
+    // 判断是否是新用户（没有历史记录，没完成过任何练习）
     const isFirstTime = history.length === 0 && doneTasks === 0;
 
     const toneGuide = isFirstTime
-      ? `这是用户第一次使用。语气温和、简洁、不过度解释。headline 让人觉得"不难，愿意试试"。reason 只说一句为什么从这个任务开始。
+      ? `这是用户第一次使用。语气温和、简洁、不过度解释。headline 让人觉得"不难，愿意试试"。reason 只说一句为什么从这个练习开始。
    好的 headline 例子：
    - "先从最简单的开始。"
-   - "从第一个任务进入状态。"
+   - "从第一个练习进入状态。"
    - "5 分钟就够，先试一下。"
    禁止：
    - 提及状态、成就、连续天数 — 新用户还没有这些数据
@@ -124,12 +124,12 @@ export async function getAIRecommendedTask(userIntention?: string): Promise<Reco
     const systemPrompt = `你是用户信任的伙伴。你了解他所有的数据。使用正确的标点符号。不用网络用语，不用感叹号，不用"冲""搞定"这类词。
 
 【用户状态】
-${isFirstTime ? "⚡ 这是用户第一次使用，还没完成过任何任务。\n" : ""}
+${isFirstTime ? "⚡ 这是用户第一次使用，还没完成过任何练习。\n" : ""}
 今日状态词：${statusText}  昨日状态：${yesterdayIndex !== null ? statusLabelFor(yesterdayIndex) : "无记录"}
 连续活跃：${streakDays} 天
-今日完成：${stats.completedTasks} 个任务
+今日完成：${stats.completedTasks} 个练习
 重点习性：${focusHabit ? focusHabit.text + (focusHabit.addressed ? "（已突破）" : "（未突破）") : "无"}
-待办任务：
+待办练习：
 ${pendingTasks || "无"}
 成就：
 ${achievementInfo}
@@ -141,14 +141,14 @@ ${userIntention ? `用户今天想做的方向：${userIntention}` : ""}
 1. headline — 卡片上最大的文字。极简（8 字以内）。
 ${toneGuide}
 
-2. task — 推荐做什么。直接用待办任务名（12 字以内）。${userIntention ? "用户表达了今天的方向，尽量尊重；如果你认为另一个任务更合适，在 reason 里简短说明。" : ""}
+2. task — 推荐做什么。直接用待办练习名（12 字以内）。${userIntention ? "用户表达了今天的方向，尽量尊重；如果你认为另一个练习更合适，在 reason 里简短说明。" : ""}
 
 3. reason — 为什么现在做这个最值（8-12 字，可省略）。${isFirstTime ? "一句话解释为什么从这个开始，能省则省。" : "一句话融合状态或成就，能省则省。"}
    ${isFirstTime ? "" : `好的例子：
    - "今天就差这一步，做完会更踏实。"
    - "今天最后一个，全清就解锁「精准执行」。"`}
    绝对禁止的：
-   - "这个任务很重要" — 没有信息量
+   - "这个练习很重要" — 没有信息量
    - "有助于提升状态" — 谁不知道
 
 严格输出 JSON。禁止方括号和圆括号：

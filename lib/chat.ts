@@ -51,14 +51,14 @@ export type TaskPanelResponse = {
   error?: string;
 };
 
-// 任务助手聊天（带完整上下文）
+// 练习助手聊天（带完整上下文）
 export async function chatWithAssistant(
   messages: ChatMessage[],
   taskContext: TaskContext,
   projectContext?: ProjectContext,
   existingUserDescriptions?: UserDescription[],
 ): Promise<ChatResponse> {
-  let contextInfo = `当前任务：
+  let contextInfo = `当前练习：
 - 标题：${taskContext.title}
 - 预计时长：${taskContext.duration || "未设定"}
 - 详情：${taskContext.detail || "无"}`;
@@ -67,13 +67,13 @@ export async function chatWithAssistant(
     const phaseSummary = projectContext.phases
       .map((p, i) => {
         const completed = p.goals.filter((g) => g.completed).length;
-        return `阶段${i + 1}: ${p.title} (${completed}/${p.goals.length}个目标已完成)`;
+        return `阶段${i + 1}: ${p.title} (${completed}/${p.goals.length}个练习已完成)`;
       })
       .join("\n");
 
-    contextInfo = `项目信息：
+    contextInfo = `学习计划信息：
 - 学科：${projectContext.subjects.join("、")}
-- 项目描述：${projectContext.question}
+- 学习描述：${projectContext.question}
 - 阶段进度：
 ${phaseSummary}
 
@@ -87,7 +87,7 @@ ${contextInfo}`;
 ${existingUserDescriptions.map((d, i) => `${i + 1}. ${d.text} (记录于 ${d.addedDate})`).join("\n")}`;
   }
 
-  const systemPrompt = `你是一位友好且善于引导的学习助手，正在帮助学生完成一个 PBL 项目。
+  const systemPrompt = `你是一位友好且善于引导的学习助手，正在帮助学生完成一个自主学习计划。
 
 ${contextInfo}
 
@@ -95,11 +95,11 @@ ${contextInfo}
 1. 简洁自然：回复控制在2-3句话，一般情况不要长篇大论
 2. 善于提问：通过提问引导用户说出遇到的具体问题
 3. 先问后答：不要一上来就给大段建议，先了解清楚情况
-4. 不偏话题：如果用户想要聊其它话题，请把话题转移回当前任务，拒绝时不要太过强硬
-5. 主动提及习性：如果当前任务与用户的某个习性相关，可以自然地提及并给出针对性建议。例如："注意到你有'容易拖延开始'的习性，这个任务建议先做5分钟试试"或"考虑到你'容易分心'，建议把手机放远一点"
+4. 不偏话题：如果用户想要聊其它话题，请把话题转移回当前学习内容，拒绝时不要太过强硬
+5. 主动提及习性：如果当前练习与用户的某个习性相关，可以自然地提及并给出针对性建议。例如："注意到你有'容易拖延开始'的习性，这个练习建议先做5分钟试试"或"考虑到你'容易分心'，建议把手机放远一点"
 
 【关于习性的主动应用】
-- 如果用户有已记录的习性，且与当前任务相关，可以主动提及并给出针对性建议
+- 如果用户有已记录的习性，且与当前练习相关，可以主动提及并给出针对性建议
 - 不要每次都提，只在真正有帮助时才提及
 - 提及时要自然、不突兀，重点是帮助而非说教
 
@@ -155,13 +155,13 @@ export async function chatRaw(
   return { reply: content, error };
 }
 
-// 任务页 AI 面板（支持触发资源刷新）
+// 练习页 AI 面板（支持触发资源刷新）
 export async function chatWithTaskPanel(
   messages: ChatMessage[],
   taskContext: TaskContext,
   projectContext?: ProjectContext,
 ): Promise<TaskPanelResponse> {
-  let contextInfo = `当前任务：
+  let contextInfo = `当前练习：
 - 标题：${taskContext.title}
 - 预计时长：${taskContext.duration || "未设定"}
 - 详情：${taskContext.detail || "无"}`;
@@ -170,28 +170,28 @@ export async function chatWithTaskPanel(
     const phaseSummary = projectContext.phases
       .map((p, i) => {
         const completed = p.goals.filter((g) => g.completed).length;
-        return `阶段${i + 1}: ${p.title} (${completed}/${p.goals.length}个目标已完成)`;
+        return `阶段${i + 1}: ${p.title} (${completed}/${p.goals.length}个练习已完成)`;
       })
       .join("\n");
 
-    contextInfo = `项目信息：
+    contextInfo = `学习计划信息：
 - 学科：${projectContext.subjects.join("、")}
-- 项目描述：${projectContext.question}
+- 学习描述：${projectContext.question}
 - 阶段进度：
 ${phaseSummary}
 
 ${contextInfo}`;
   }
 
-  const systemPrompt = `你是一个支持型的学习助手，帮助用户推进自主 PBL 项目。
+  const systemPrompt = `你是一个支持型的学习助手，帮助用户推进自主学习计划。
 
 ${contextInfo}
 
 【你能做的事】
-1. 回答用户关于项目/任务的问题（简洁、具体、可执行）
+1. 回答用户关于学习主题/练习的问题（简洁、具体、可执行）
 2. 用户提出“重新找资料/再搜/换资源”等需求时，触发资源刷新
 3. 用户可能会发送图片，请结合图片内容给出简短、具体的回复
-4. 当你认真看过成果且判断“已经完成得不错”时，可以建议完成任务，并附带一个完成按钮
+4. 当你认真看过成果且判断“已经完成得不错”时，可以建议完成练习，并附带一个完成按钮
 
 【回复要求】
 - 回复简短克制，1-2 句话优先

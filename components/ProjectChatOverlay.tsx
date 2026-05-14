@@ -38,8 +38,8 @@ export default function ProjectChatOverlay({
   const [inputText, setInputText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([
-    "帮我把这个项目拆分成更小的任务",
-    "调整任务的时长和顺序",
+    "帮我把这个学习主题拆成更小的练习",
+    "调整练习的时长和顺序",
     "给出学习资源和方法建议",
   ]);
   const scrollViewRef = useRef<ScrollView>(null);
@@ -186,7 +186,7 @@ export default function ProjectChatOverlay({
           <View style={styles.header}>
             <View style={styles.handle} />
             <View style={styles.headerRow}>
-              <Text style={styles.headerTitle}>项目顾问</Text>
+              <Text style={styles.headerTitle}>学习顾问</Text>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
                 {messages.length > 0 && (
                   <Pressable
@@ -223,16 +223,16 @@ export default function ProjectChatOverlay({
           >
             {messages.length === 0 ? (
               <View style={styles.emptyState}>
-                <Text style={styles.emptyStateTitle}>项目顾问 AI</Text>
+                <Text style={styles.emptyStateTitle}>学习顾问 AI</Text>
                 <Text style={styles.emptyStateText}>
                   我可以帮你：{"\n"}
-                  • 拆解项目成具体任务{"\n"}
-                  • 调整任务的时长和顺序{"\n"}
+                  • 拆解学习主题成具体练习{"\n"}
+                  • 调整练习的时长和顺序{"\n"}
                   • 根据你的状态优化计划{"\n"}
                   • 给出学习资源和方法建议
                 </Text>
                 <Text style={styles.emptyStateHint}>
-                  试试问我："帮我把这个项目拆分成更小的任务"
+                  试试问我：帮我把这个学习主题拆成更小的练习
                 </Text>
               </View>
             ) : (
@@ -298,7 +298,7 @@ export default function ProjectChatOverlay({
                             <Text style={styles.changePhase}>
                               阶段 {change.phaseIndex + 1}
                               {change.goalIndex !== undefined
-                                ? ` · 任务 ${change.goalIndex + 1}`
+                                ? ` · 练习 ${change.goalIndex + 1}`
                                 : ""}
                             </Text>
                           </View>
@@ -375,7 +375,7 @@ export default function ProjectChatOverlay({
             <View style={styles.inputRow}>
               <TextInput
                 style={styles.input}
-                placeholder="输入消息..."
+                placeholder="输入你的问题..."
                 placeholderTextColor="#A3A3A3"
                 value={inputText}
                 onChangeText={setInputText}
